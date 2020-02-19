@@ -5,7 +5,7 @@ const https = require('https')
 const app = express()
 const db = require('./queries')
 const port = 3000
-const config = require('./config');
+const { config } = require('./config');
 
 app.use(bodyParser.json())
 app.use(
@@ -20,23 +20,44 @@ app.get('/', (request, response) => {
 })
 
 app.get('/currentWeather', (request, response) => {
-  let { city, country } = request.headers;
-  https.get(`https://api.openweathermap.org/data/2.5/weather?q=${city},${country}&appid=${config.openWeatherKey}&lang=en
-  `, resp => {
-    let data = '';
-
-    resp.on('data', chunk => {
-      data += chunk;
+  let { zip, country, city} = request.headers;
+  console.log(zip === 'undefined');
+  if(zip.split('').filter(char => char === ' ').length >=1 || zip === 'undefined'){
+    https.get(`https://api.openweathermap.org/data/2.5/weather?q=${city},${country}&appid=${config.openWeatherKey}&lang=en
+    `, resp => {
+      let data = '';
+  
+      resp.on('data', chunk => {
+        data += chunk;
+      })
+  
+      resp.on('end', () => {
+        response.setHeader('Content-Type', 'application/json');
+        response.send(JSON.stringify(data));
+      })
     })
-
-    resp.on('end', () => {
-      response.setHeader('Content-Type', 'application/json');
-      response.send(JSON.stringify(data));
+    .on('error', err => {
+      console.log('Error: ', + err.message);
     })
-  })
-  .on('error', err => {
-    console.log('Error: ', + err.message);
-  })
+  } else {
+    https.get(`https://api.openweathermap.org/data/2.5/weather?zip=${zip},${country}&appid=${config.openWeatherKey}&lang=en
+    `, resp => {
+      let data = '';
+  
+      resp.on('data', chunk => {
+        data += chunk;
+      })
+  
+      resp.on('end', () => {
+        response.setHeader('Content-Type', 'application/json');
+        response.send(JSON.stringify(data));
+      })
+    })
+    .on('error', err => {
+      console.log('Error: ', + err.message);
+    }) 
+  }
+
 })
 
 app.get('/darkSky', (request, response) => {
@@ -80,28 +101,9 @@ app.get('/airData', (request, response) => {
   })
 })
 
-app.get('/forecastWeather', (request,response) => {
-  let { city, country } = request.headers;
-  https.get(`https://api.openweathermap.org/data/2.5/forecast?q=${city},${country}&appid=${config.openWeatherKey}
-  `, resp => {
-    let data = '';
-
-    resp.on('data', chunk => {
-      data+= chunk;
-    })
-
-    resp.on('end', () => {
-      response.setHeader('Content-Type', 'application/json');
-      response.send(JSON.stringify(data));
-    })
-  }).on('error', err => {
-    console.log('Error: ', + err.message);
-  })
-})
-
 app.get('/autocomplete', (request, response) => {
   let { query } = request.headers;
-  https.get(`https://autocomplete.geocoder.ls.hereapi.com/6.2/suggest.json?apiKey=${config.autoCompleteApiKey}&query=${query}&language=en`, resp => {
+  https.get(`https://autocomplete.geocoder.ls.hereapi.com/6.2/suggest.json?apiKey=${config.autoCompleteApiKey}&query=${query}&language=en&resultType=city`, resp => {
     let data = '';
 
     resp.on('data', chunk => {
@@ -119,6 +121,7 @@ app.get('/autocomplete', (request, response) => {
 })
 
 app.get('/users', db.getUsers)
+app.post('/login', db.getUsers)
 app.post('/users', db.createUser)
 app.put('/users/:id', db.updateUser)
 app.delete('/users/:id', db.deleteUser)

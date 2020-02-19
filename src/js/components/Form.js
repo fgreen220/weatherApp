@@ -1,8 +1,10 @@
 import React, { Component, Fragment } from "react";
 import ReactDOM from "react-dom";
 import 'babel-polyfill';
+import { Tooltip } from '@material-ui/core';
 import { countryCodes } from '../../countryDictionary';
 import '../../styles/style.css';
+import SignIn from './SignIn';
 
 class Form extends Component {
     constructor() {
@@ -10,14 +12,13 @@ class Form extends Component {
 
 
         this.state = {
+            isLoggedIn: false,
             cities: [],
             citiesDisplayed: [],
             countryCode: [],
             cityId: [],
             currentCity: undefined,
             isFahrenheit: true,
-            fahrenheit: [],
-            celsius: [],
             currentTemp: [],
             currentHours: '',
             currentMinutes: '',
@@ -31,7 +32,6 @@ class Form extends Component {
             selectedCity: undefined,
             selectedCountry: undefined,
             weather: [],
-            forecastData: [],
             selectedForecast: [],
             weatherDescription: [],
             minTemp: [],
@@ -43,67 +43,56 @@ class Form extends Component {
             airData: [],
             aqi: [],
             aqiArray: [],
-            loadingAirData: true,
+            loadingAirData: false,
             opacityPercentage: 1,
             position:'sticky',
             positionCity:'sticky',
-            overlayDiv: 'initial'
+            overlayDiv: 'initial',
+            fontMultiplier: window.screen.width>1070?1.4:window.screen.width>1820?2:1,
+            swipeStartX: 0,
+            swipeStartY: 0,
+            swipeEndX: 0,
+            swipeEndY: 0
+
         };
 
         this.addCityHandler = this.addCityHandler.bind(this);
         this.cityInputHandler = this.cityInputHandler.bind(this);
         this.testData = this.testData.bind(this);
         this.cityInputAutocomplete = this.cityInputAutocomplete.bind(this);
-        this.forecastData = this.forecastData.bind(this);
         this.cityTileHandler = this.cityTileHandler.bind(this);
         this.darkSkyData = this.darkSkyData.bind(this);
+        this.signInHandler = this.signInHandler.bind(this);
+        this.testPoints = this.testPoints.bind(this);
     }
 
     listenScrollEvent = e => {
-      if (window.scrollY < 10) {
+      if (window.scrollY < 5) {
         this.setState({opacityPercentage: 1})
       }
       if (window.scrollY > 10) {
-        this.setState({opacityPercentage: 0.9})
+        this.setState({opacityPercentage: 0.75})
       }
-      if (window.scrollY > 20) {
-        this.setState({opacityPercentage: 0.8})
-      }
-      if (window.scrollY > 30) {
-        this.setState({opacityPercentage: 0.7})
-      }
-      if (window.scrollY > 40) {
-        this.setState({opacityPercentage: 0.6})
-      }
-      if (window.scrollY > 50) {
+      if (window.scrollY > 15) {
         this.setState({opacityPercentage: 0.5})
       }
-      if (window.scrollY > 60) {
-        this.setState({opacityPercentage: 0.4})
+      if (window.scrollY > 20) {
+        this.setState({opacityPercentage: 0.25});
+
       }
-      if (window.scrollY > 70) {
-        this.setState({opacityPercentage: 0.3})
+      if (window.scrollY > 25) {
+        this.setState({opacityPercentage: 0});
+        // document.querySelector('#divScale').style.height = '23.5vh';
       }
-      if (window.scrollY > 80) {
-        this.setState({opacityPercentage: 0.2})
-      }
-      if (window.scrollY > 90) {
-        this.setState({opacityPercentage: 0.1})
-      }
-      if (window.scrollY > 100) {
-        this.setState({opacityPercentage: 0})
-      }
-      
-      if (window.scrollY > 300) {
-        this.setState({positionCity:'fixed',
-        position: 'fixed',
-        overlayDiv: 'fixed'})
-      }
-      if (window.scrollY < 300) {
-        this.setState({positionCity: 'sticky',
-        position:'sticky',
-      overlayDiv: 'initial'});
-      }
+      // if (window.scrollY > 30) {
+      //   document.querySelector('#divScale').style.height = '27vh';
+      // }
+      // if (window.scrollY > 35) {
+      //   document.querySelector('#divScale').style.height = '30.5vh';
+      // }
+      // if (window.scrollY > 40) {
+      //   document.querySelector('#divScale').style.height = '34vh';
+      // }
     }
 
     componentDidMount () {
@@ -130,35 +119,6 @@ class Form extends Component {
         currentMinutes,
         currentHours: currentUTCHour
       });
-    }
-
-    async forecastData (country, city) {
-      let countryFinal = countryCodes.filter(code => {
-        return code[country];
-      })[0][country];
-
-      await fetch(`http://localhost:3000/forecastWeather`, {
-        method: 'get',
-        headers: {
-          'Content-Type': 'application/json',
-          'city': `${city}`,
-          'country': `${countryFinal}`
-        }
-      })
-      .then(response => response.json())
-      .then(data => {
-        data = JSON.parse(data);
-        console.log(data);
-        if(this.state.forecastData.length === 0){
-          this.setState({
-            forecastData: [{[`${city}*${country}`]: data.list}]
-          })
-        } else if (this.state.forecastData.length !== 0) {
-          this.setState({
-            forecastData: [...this.state.forecastData, {[`${city}*${country}`]: data.list}]
-          })
-        }
-      })
     }
 
     async airData (lat, lon, currentCity) {
@@ -210,8 +170,9 @@ class Form extends Component {
       }
     }
 
-    async testData (country, city) {
-      console.log(country, city);
+    async testData (country, city, zip) {
+      console.log(country, city, 'Zip: ', zip);
+      console.log(zip === undefined);
       let countryFinal = countryCodes.filter(code => {
         return code[country];
       })[0][country];
@@ -220,6 +181,7 @@ class Form extends Component {
           method: 'get',
           headers: {
               'Content-Type': 'application/json',
+              'zip': `${zip}`,
               'city': `${city}`,
               'country': `${countryFinal}`
           }
@@ -228,46 +190,30 @@ class Form extends Component {
       .then(data => {
         data = JSON.parse(data);
         if(data.name !== undefined){
-        const fahrenheit = Math.round((data.main.temp - 273.15) * 9/5 + 32);
-        const celsius = Math.round((data.main.temp - 273.15));
         const timezone = data.timezone/3600;
         const weatherDescription = data.weather[0].description.charAt(0).toUpperCase()+data.weather[0].description.slice(1);
-        const faMinTemp = Math.round((data.main.temp_min - 273.15) * 9/5 + 32);
-        const faMaxTemp = Math.round((data.main.temp_max - 273.15) * 9/5 + 32);      
-        const ceMinTemp = Math.round((data.main.temp_min - 273.15));
-        const ceMaxTemp = Math.round((data.main.temp_max - 273.15));
         const rainfall = data.rain?Math.round(data.rain['1h']/25.4):0;
         const windSpeed = data.wind.speed*2.237;
-        const flFahrenheit = Math.round((data.main.feels_like - 273.15) * 9/5 + 32);
-        const flCelsius = Math.round((data.main.feels_like - 273.15));
-        const pressure = Math.round(data.main.pressure/33.864);
-        const visibility = Math.round(data.visibility/1609);
+        // const pressure = Math.round(data.main.pressure/33.864);
+        // const visibility = Math.round(data.visibility/1609);
         console.log(data);
 
         if(this.state.cities.length > 0){
           this.setState({currentCity: `${city}*${country}`,
             cityId: [...this.state.cityId, data.id],
             temp: data.main.temp,
-            fahrenheit: [...this.state.fahrenheit, {[`${city}*${country}`]: fahrenheit}],
-            celsius: [...this.state.celsius, {[`${city}*${country}`]: celsius}],
             addCityClicked: false,
             timezone: [...this.state.timezone, {[`${city}*${country}`]:timezone}],
             weather: [...this.state.weather, data.weather[0].main],
             weatherDescription: [...this.state.weatherDescription, weatherDescription],
-            faMinTemp: [...this.state.minTemp, faMinTemp],
-            faMaxTemp: [...this.state.maxTemp, faMaxTemp],
-            ceMinTemp: [...this.state.minTemp, ceMinTemp],
-            ceMaxTemp: [...this.state.maxTemp, ceMaxTemp],
             sunrise: [...this.state.sunrise, data.sys.sunrise],
             sunset: [...this.state.sunset, data.sys.sunset],
             rainfall: [...this.state.rainfall, rainfall],
             humidity: [...this.state.humidity, data.main.humidity],
             windSpeed: [...this.state.windSpeed, windSpeed],
             windDirection: [...this.state.windDirection, data.wind.deg],
-            flFahrenheit: [...this.state.flFahrenheit, flFahrenheit],
-            flCelsius: [...this.state.flCelsius, flCelsius],
-            pressure: [...this.state.pressure, pressure],
-            visibility: [...this.state.visibility, visibility],
+            // pressure: [...this.state.pressure, pressure],
+            // visibility: [...this.state.visibility, visibility],
             coordinates: [...this.state.coordinates,{city: `${city}*${country}`, lat:data.coord.lat, lon:data.coord.lon}],
 
             });
@@ -275,26 +221,18 @@ class Form extends Component {
             this.setState({currentCity: `${city}*${country}`,
               cityId: [...this.state.cityId, data.id],
               temp: data.main.temp,
-              fahrenheit: [...this.state.fahrenheit, {[`${city}*${country}`]: fahrenheit}],
-              celsius: [...this.state.celsius, {[`${city}*${country}`]: celsius}],
               addCityClicked: false,
               timezone: [{[`${city}*${country}`]:timezone}],
               weather: [data.weather[0].main], 
               weatherDescription: [weatherDescription],
-              faMinTemp: [faMinTemp],
-              faMaxTemp: [faMaxTemp],
-              ceMinTemp: [ceMinTemp],
-              ceMaxTemp: [ceMaxTemp],
               sunrise: [data.sys.sunrise],
               sunset: [data.sys.sunset],
               rainfall: [rainfall],
               humidity: [data.main.humidity],
               windSpeed: [windSpeed],
               windDirection: [data.wind.deg],
-              flFahrenheit: [flFahrenheit],
-              flCelsius: [flCelsius],
-              pressure: [pressure],
-              visibility: [visibility],
+              // pressure: [pressure],
+              // visibility: [visibility],
               coordinates: [{city: `${city}*${country}`,lat:data.coord.lat, lon:data.coord.lon}],
             });
         }
@@ -303,7 +241,7 @@ class Form extends Component {
       .catch(e => console.error(e))
     }
     
-    async darkSkyData (city, country, latitude, longitude) {
+    async darkSkyData (city, country, latitude, longitude, zip) {
       console.log(latitude, longitude); 
       
       await fetch(`http://localhost:3000/darkSky`, {
@@ -364,16 +302,20 @@ class Form extends Component {
       }));
     }
 
-    async addCityHandler (city, country) {
+    async addCityHandler (city, country, zip, e) {
+      e.persist();
+      console.log(e);
       const cities = this.state.cities;
       const countryCode = this.state.countryCode;
+      const fahrenheit = this.state.fahrenheit;
       if(cities.filter(item => item === city).length === 0 || countryCode.filter(item => item === country).length === 0){
-        await this.testData(country, city);
-        await this.forecastData(country, city);
+        await this.testData(country, city, zip);
       }
-      if(cities.filter(item => item === city).length===0 ||
-      countryCode.filter(item => item === country).length === 0 &&
-      this.state.fahrenheit.filter(item => typeof(item[`${city}*${country}`]) === 'number').length !== 0) {
+      if((cities.filter(item => item === city).length===0 ||
+      countryCode.filter(item => item === country).length === 0) && 
+      (fahrenheit?fahrenheit.filter(item => typeof(item[`${city}*${country}`]) === 'number').length !== 0:null ||
+      this.state.currentCity === `${city}*${country}`)) {
+        console.log(this.state.currentCity);
         this.setState(prevState => ({
           cities: [...prevState.cities, `${city}*${country}`],
           countryCode: [...this.state.countryCode, country],
@@ -384,6 +326,9 @@ class Form extends Component {
         console.log('Hourly Forecast: ', this.state.hourlyForecast);
         console.log('Daily Forecast: ', this.state.dailyForecast);
         console.log(this.state.cities);
+        this.setState({
+          loadingAirData: true
+        });
         await this.airData(this.state.coordinates.filter(coords => coords.city === `${city}*${country}`)[0].lat,this.state.coordinates.filter(coords => coords.city === `${city}*${country}`)[0].lon, `${city}*${country}`); 
         if(this.state.airData.length !== 0){
           this.state.airData.forEach((dataPoint, index) => {
@@ -647,6 +592,10 @@ class Form extends Component {
           })
       }
       } else {
+        e.target.id = `tooltip`;
+        setTimeout(() => {
+          document.querySelectorAll(`#tooltip`)[0].id='';
+        },4000);
         console.log('try another city');
       }
     }
@@ -667,15 +616,9 @@ class Form extends Component {
       .then(response => response.json())
       .then(data => {
         data = JSON.parse(data);
-        console.log(data);
-        if(data.suggestions.length !== 0){
-          const matchedCities = data.suggestions.filter(entry => {
-            return entry.matchLevel === 'city';
-          });
-          console.log('Matched Cities', matchedCities);
-          if(matchedCities.length>=1){
-            this.setState({matchedCities});
-          }
+        console.log(data.suggestions);
+        if(data.suggestions !== undefined){
+            this.setState({matchedCities: data.suggestions});
         }
       });
     }
@@ -809,19 +752,19 @@ class Form extends Component {
     aqiText = (aqi) => {
       let aqiText = undefined;
       switch(aqi){
-        case(aqi<50?aqi:null):
+        case(aqi<=50?aqi:null):
           aqiText = 'Good';
           break;
-        case(aqi>50&&aqi<100?aqi:null):
+        case(aqi>50&&aqi<=100?aqi:null):
           aqiText = 'Moderate';
           break;
-        case(aqi>100&&aqi<150?aqi:null):
+        case(aqi>100&&aqi<=150?aqi:null):
           aqiText = 'Unhealthy for Sensitive Groups';
           break;
-        case(aqi>150&&aqi<200?aqi:null):
+        case(aqi>150&&aqi<=200?aqi:null):
           aqiText = 'Unhealthy';
           break;
-        case(aqi>200&&aqi<300?aqi:null):
+        case(aqi>200&&aqi<=300?aqi:null):
           aqiText = 'Very Unhealthy';
           break;
         case(aqi>300?aqi:null):
@@ -834,7 +777,7 @@ class Form extends Component {
     }
     resetLoadingAirData = () => {
       this.setState({
-        loadingAirData: true
+        loadingAirData: false
       })
     }
 
@@ -846,10 +789,98 @@ class Form extends Component {
       return `${finalHours===0?12:finalHours>12?finalHours-12:finalHours} ${period}`;
     }
 
+    iconSelector = (icon) => {
+      let iconPath = undefined;
+      switch (icon) {
+        case 'clear-day':
+          iconPath = '../src/assets/day.svg';
+          break;
+        case 'clear-night':
+          iconPath = '../src/assets/night.svg';
+          break;
+        case 'rain':
+          iconPath = '../src/assets/rainy-3.svg';
+          break;
+        case 'snow':
+        case 'sleet':
+          iconPath = '../src/assets/snowy-1.svg';
+          break;
+        case 'wind':
+          iconPath = '../src/assets/wind.svg';
+          break;
+        case 'fog':
+          iconPath = '../src/assets/haze.svg';
+          break;
+        case 'cloudy':
+        case 'partly-cloudy-day':
+          iconPath = '../src/assets/cloudy-day-1.svg';
+          break;
+        case 'partly-cloudy-night':
+          iconPath = '../src/assets/cloudy-night-1.svg';
+          break;
+        case 'tornado':
+        case 'thunderstorm':
+        case 'hail':
+          iconPath = '../src/assets/thunder.svg';
+          break;
+        default:
+          iconPath = '../src/assets/cloudy.svg';
+      }
+      return iconPath;
+    }
+
+    async signInHandler (username, password) {
+      await fetch('http://localhost:3000/login', {
+        method:'post',
+        headers: {
+          'Content-Type':'application/json',
+          'username': `${username}`,
+          'password': `${password}`
+        }
+        // body: JSON.stringify({username, password, state:this.state})
+      })
+      .then(response => response.json())
+      .then(data => {
+        if(data.isLoggedIn && data.state === undefined) {
+          console.log(data);
+          this.setState({
+            isLoggedIn: true,
+            id:data.id
+          })
+        } else if(data.isLoggedIn && data.state !== undefined) {
+            console.log(data.state);
+            this.setState({
+              ...data.state,
+              isLoggedIn: true,
+              id:data.id,
+            })
+          } 
+        else {
+          console.log('Invalid login')
+        }
+      })
+    }
+
+    async testPoints () {
+      await fetch(`http://localhost:3000/users/${this.state.id}`, {
+        method:'put',
+        headers: {
+          'Content-Type':'application/json'
+        },
+        body: JSON.stringify({state:this.state})
+      })
+      .then(response => response.json())
+      .then(data => console.log(data.response))
+    }
+
+    dragTileHandler = (e) => {
+      e.persist();
+      e.preventDefault();
+      console.log('dragging');
+    }
+
     render() {
         const { currentCity,
-          fahrenheit,
-          celsius,
           isFahrenheit,
           currentHours,
           currentMinutes,
@@ -865,23 +896,14 @@ class Form extends Component {
           selectedCountry,
           weather,
           countryCode,
-          forecastData,
           selectedForecast,
           weatherDescription,
-          faMinTemp,
-          faMaxTemp,
-          ceMinTemp,
-          ceMaxTemp,
           sunrise,
           sunset,
           rainfall,
           humidity,
           windSpeed,
           windDirection,
-          flFahrenheit,
-          flCelsius,
-          pressure,
-          visibility,
           coordinates,
           currentForecast,
           hourlyForecast,
@@ -896,23 +918,32 @@ class Form extends Component {
           opacityPercentage,
           position,
           positionCity,
-          overlayDiv
+          overlayDiv,
+          fontMultiplier,
+          isLoggedIn
          } = this.state;
         return (
           <Fragment>
-              {   cities.length >= 1 && !cityTileClicked && dailyForecast === undefined || aqiArray.length !== cities.length && loadingAirData === true?
+              { !isLoggedIn ?
+                <SignIn signInHandler={this.signInHandler}/>
+              :
+              cities.length >= 1 && !cityTileClicked && currentForecast === undefined && loadingAirData === true && isLoggedIn?
                   <div>
                     <p>Loading...</p>
                   </div>
-                  : !cityTileClicked ?
+                  : !cityTileClicked && isLoggedIn?
                 cities.map((city, index) => {
-                  let adjustedHours = currentHours+timezone[index][city];
+                  index === cities.length - 1 ? () => this.setState({rendered:cities}):null
+
+                  let adjustedHours = currentHours+timezone[index][city]
                   let timezoneHours = adjustedHours>23?adjustedHours-24:adjustedHours<0?24+adjustedHours:adjustedHours;
-                  return (<Fragment key={city,index}>
-                    <div id={`${city}*${countryCode[index]}`} onLoad={this.resetLoadingAirData} onClick={e => this.cityTileHandler(e)} style={{display:'grid',justifyContent: 'space-between',gridTemplateColumns:'1fr 1fr',backgroundColor:'blue',color:'white'}}>
+                  return (<div style={{height:'5rem', backgroundSize:'100% 5rem'}} className={currentForecast.length === cities.length ?
+                    `${currentForecast.filter(cast => cast[city])[0][city]['icon']}1`:
+                     'cloudy1'} id={`${city}*${countryCode[index]}`} onLoad={this.resetLoadingAirData} onDragStart={this.dragTileHandler} key={city,index}>
+                    <div onMouseDown={e => this.dragTileHandler(e)} onMouseUp={e => this.dragTileHandler(e)} onClick={e => this.cityTileHandler(e)} style={{display:'grid',justifyContent: 'space-between',gridTemplateColumns:'1fr 1fr', color:'white', textShadow:'0.07em 0 black,0 0.07em black,-0.07em 0 black,0 -0.07em black'}}>
                       <div>
                         <p style={{display:'grid',margin:'1rem 0 0 2rem',gridColumn:'1 / 2',gridRow: '1 / 2',alignSelf:'start',justifySelf:'start'}}>{`${timezoneHours===0?12:timezoneHours>12?timezoneHours-12:timezoneHours}:${currentMinutes} ${timezoneHours>11?'PM':'AM'}`}</p>
-                        <h1 style={{display:'grid',margin:'0 0 0 2rem',alignSelf:'start',justifySelf:'start',gridColumn:'1 / 2',gridRow: '1 / 2'}}>{city}</h1>
+                        <h1 style={{display:'grid',margin:'0 0 0 2rem',alignSelf:'start',justifySelf:'start',gridColumn:'1 / 2',gridRow: '1 / 2'}}>{city.split('*')[0]}</h1>
                       </div>
                     { cities.length>=1 && currentForecast.filter(item => typeof(item[city])==='object')?
                       <h1 style={{justifySelf:'end', marginRight:'2rem'}}>{currentForecast.length>=cities.length && currentForecast.length >=1?`${Math.round(currentForecast.filter(fore => typeof(fore[city]) === 'object')[0][city].temperature)}°`:null}</h1>
@@ -920,181 +951,157 @@ class Form extends Component {
                       null
                     }
                     </div>
-                  </Fragment>);
+                  </div>
+                  );
                 })
-                : selectedCity ?
-                    <Fragment>
-                      <div style={{backgroundColor:'white', position:`${overlayDiv}`, width:overlayDiv==='fixed'?'100%':null, top:overlayDiv==='fixed'?0:null, height:overlayDiv==='fixed'?'378px':null}}>
-                      <div id='stickyDiv' style={{display:'grid', justifySelf:'center', position:`${positionCity}`, top:positionCity==='fixed'?'-50px':'50px', transform: positionCity==='fixed'? 'translateX(-50%)':null, left:'50%', marginTop:'100px'}}>
-                        <h1 style={{zIndex:5, display:'grid', justifyContent:'center', margin:0, whiteSpace:'nowrap'}}>{selectedCity}</h1>
-                        <p style={{zIndex:5, display:'grid', justifyContent:'center', textAlign:'center', margin:0, whiteSpace:'nowrap'}}>{selectedCurrentForecast[selection]['summary']}</p>
-                      </div>
-                      <div style={{display:'grid', justifyContent:'center', }}>
-                        <p style={{display:'inline', textAlign:'center', fontSize:'6rem', opacity:`${opacityPercentage}`}}>
-                          {/* {isFahrenheit ?
-                          `${fahrenheit.filter(entry => entry[`${selectedCity}*${selectedCountry}`])[0][`${selectedCity}*${selectedCountry}`]}`
-                          :
-                          `${celsius.filter(entry => entry[`${selectedCity}*${selectedCountry}`])[0][`${selectedCity}*${selectedCountry}`]}`
-                          } */}
-                          {
-                            currentForecast.length>=cities.length && currentForecast.length >=1?Math.round(currentForecast.filter(fore => typeof(fore[`${selectedCity}*${selectedCountry}`]) === 'object')[0][`${selectedCity}*${selectedCountry}`].temperature):null
-                          }
-                          <span style={{fontSize:'3rem', display:'inline', verticalAlign:'top', margin:0}}>°</span>
-                          </p>
-                      </div>
-                      <div style={{display:'grid',gridTemplateColumns:'1fr 1fr', opacity:`${opacityPercentage}`}}>
-                        <p style={{display:'grid', margin:'0 0 0 2rem', gridRow:'1', whiteSpace:'nowrap', fontSize:'2rem'}}>{this.dayOfTheWeekHandler(new Date(selectedDailyForecast[selection][0].time*1000+selectedTimezone).getUTCDay())}</p>
-                        <p style={{display:'grid', justifyContent:'end', margin:'0 2rem 0 0', gridRow:'1', whiteSpace:'nowrap', fontSize:'2rem'}}>{`${Math.round(selectedDailyForecast[selection][0].temperatureMax)} ${Math.round(selectedDailyForecast[selection][0].temperatureMin)}`}</p>
-                      </div>
+                : selectedCity && isLoggedIn?
+                      <div className={currentForecast.length === cities.length ?
+                        `${currentForecast.filter(cast => cast[selection])[0][selection]['icon']}`:
+                         'cloudy'} style={{height:'100%'}}>
+                        <div id='stickyDiv' style={{background:'inherit', minHeight:'10vh', position:'sticky', top:0, paddingTop:'5vh', display:'grid', textAlign:'center', margin:0, zIndex:5}}>
+                          <p style={{zIndex:5, display:'grid', justifyContent:'center', fontSize:`${4*fontMultiplier}vh`, whiteSpace:'nowrap', margin:0}}>{selectedCity}</p>
+                          <p style={{zIndex:5, display:'grid', justifyContent:'center', fontSize:`${2*fontMultiplier}vh`, textAlign:'center', whiteSpace:'nowrap', margin:0}}>{selectedCurrentForecast[selection]['summary']}</p>
+                        </div>
+                        <p className='removeTemp' style={{zIndex:5, position:'absolute', margin:0, left:'50%', transform:'translateX(-50%)', fontSize:'12vh', opacity:`${opacityPercentage}`}}>
+                          {Math.round(selectedCurrentForecast[selection]['temperature'])}
+                          <span style={{position:'absolute', fontSize:'6vh', display:'inline', verticalAlign:'top', margin:0}}>°</span>
+                        </p>
                     {
-                          <div>
-                            <div style={{zIndex:5, position:`${position}`, top:'200px'}}>
-                              <hr />
-                              <div id='noScrollDiv' style={{display:'grid', overflowY:'scroll', gridTemplateColumns: `repeat(${selectedHourlyForecast[selection].length+1}, 1fr)`, gridTemplateRows: '1fr'}}>
-                                  <div style={{display:'grid', width:'calc(12.5vw)'}}>
-                                    <p style={{display:'grid', gridRow:'1', fontSize:'1rem', margin:'1rem 0 1rem 2rem', fontWeight:'bold'}}>{'Now'}</p>
-                                    <p style={{display:'grid', gridRow:'2', fontSize:'1rem', margin:'1rem 0 1rem 2rem'}}>icon</p>
-                                    <p style={{display:'grid', gridRow:'3', fontSize:'1rem', margin:'1rem 0 1rem 2rem', fontWeight:'bold'}}>{`${Math.round(selectedCurrentForecast[selection].temperature)}°`}</p>
-                                  </div>
-                                {
-                                selectedHourlyForecast[selection].map((forecast, index) => {
-                                  return <div style={{display:'grid', width:'12.5vw'}}>
-                                    <p style={{display:'grid', gridRow:'1', fontSize:'1rem', justifySelf:'center'}}>{this.timezoneHandler(forecast.time*1000)}</p>
-                                    <p style={{display:'grid', gridRow:'2', fontSize:'1rem', justifySelf:'center'}}>icon</p>
-                                    <p style={{display:'grid', gridRow:'3', fontSize:'1rem', justifySelf:'center'}}>{`${Math.round(forecast.temperature)}°`}</p> 
-                                  </div>
-                                })
-                                }
-                              </div>
-                              <hr />
+                          <Fragment>
+                            <div id='divScale' style={{background:'inherit', zIndex:4, height:'20vh', position:'sticky', top:'14vh'}}>
                             </div>
-                          </div>
+                            <div style={{background:'inherit', position:'sticky', top:'24vh', margin:'0', zIndex:5}}>
+                              <div className='removeCurrent' style={{width:'100%', position:'absolute', display:'grid',gridTemplateColumns:'1fr 1fr 1fr', opacity:`${opacityPercentage}`}}>
+                                <p style={{transform:'translateY(-200%)', textAlign:'bottom', display:'grid', marginLeft:'2rem', whiteSpace:'nowrap', fontSize:`${3*fontMultiplier}vh`}}>{this.dayOfTheWeekHandler(new Date(selectedDailyForecast[selection][0].time*1000+selectedTimezone).getUTCDay())}</p>
+                                <p style={{display:'grid', transform:'translateY(-200%)', gridColumn:'3', whiteSpace:'nowrap', fontSize:`${3*fontMultiplier}vh`, justifySelf:'center', marginRight:'32px'}}>{`${Math.round(selectedDailyForecast[selection][0].temperatureMax)}`}</p>
+                                <p style={{position:'absolute', transform:'translateY(-200%)', right:0, textAlign:'bottom', display:'grid', justifyContent:'end', marginRight:'2rem', whiteSpace:'nowrap', fontSize:`${3*fontMultiplier}vh`}}>{`${Math.round(selectedDailyForecast[selection][0].temperatureMin)}`}</p>
+                              </div>
+                              <div style={{zIndex:5, height:'100%'}}>
+                                <hr />
+                                <div id='noScrollDiv' style={{height:'100%', display:'grid', overflowY:'scroll', gridTemplateColumns: `repeat(${selectedHourlyForecast[selection].length+1}, 1fr)`, gridTemplateRows: '1fr'}}>
+                                    <div style={{display:'grid', width:'calc(12.5vw)'}}>
+                                      <p style={{display:'grid', gridRow:'1', fontSize:`${2*fontMultiplier}vh`, alignSelf:'center', margin:'1rem 0 1rem 2rem', fontWeight:'bold'}}>{'Now'}</p>
+                    <p style={{display:'grid', gridRow:'2', fontSize:`${2*fontMultiplier}vh`, alignSelf:'center', margin:'1rem 0 1rem 2rem'}}><img src={`${this.iconSelector(selectedCurrentForecast[selection]['icon'])}`} /></p>
+                                      <p style={{display:'grid', gridRow:'3', fontSize:`${2*fontMultiplier}vh`, alignSelf:'center', margin:'1rem 0 1rem 2rem', fontWeight:'bold'}}>{`${Math.round(selectedCurrentForecast[selection].temperature)}°`}</p>
+                                    </div>
+                                  {
+                                  selectedHourlyForecast[selection].map((forecast, index) => {
+                                    let iconSelection = this.iconSelector(forecast['icon']);
+                                    return <div style={{display:'grid', width:'12.5vw'}}>
+                                      <p style={{display:'grid', gridRow:'1', fontSize:`${2*fontMultiplier}vh`, justifySelf:'center'}}>{this.timezoneHandler(forecast.time*1000)}</p>
+                                      <p style={{display:'grid', gridRow:'2', fontSize:`${2*fontMultiplier}vh`, justifySelf:'center'}}><img src={`${iconSelection}`}/></p>
+                                      <p style={{display:'grid', gridRow:'3', fontSize:`${2*fontMultiplier}vh`, justifySelf:'center'}}>{`${Math.round(forecast.temperature)}°`}</p> 
+                                    </div>
+                                  })
+                                  }
+                                </div>
+                                <hr />
+                              </div>
+                            </div>
+                        </Fragment>
                     }
-                    </div>
                     {
-                      <Fragment>
-                        <div style={{display:'grid', marginTop:positionCity==='fixed'?'685px':0, gridTemplateColumns: 'repeat(3, 1fr)', gridTemplateRows: `repeat(${selectedDailyForecast[selection].length},1fr)`}}>
+                      <div style={{height:'100%', marginTop:'2vh'}}>
+                        <div style={{gridRowGap:'3vh', height:'100%', display:'grid', gridTemplateColumns: 'repeat(3, 1fr)', gridTemplateRows: `repeat(${selectedDailyForecast[selection].length-1},1fr)`}}>
                           {
                           selectedDailyForecast[selection].map((forecast, index) => {
                             if(index !== 0){
+                              let iconPath = this.iconSelector(forecast['icon'])
                               return <Fragment>
-                                <p style={{display:'grid', gridRow:`${index+1}`, gridColumn:'1', marginLeft:'2rem', alignSelf:'center'}}>{this.dayOfTheWeekHandler(new Date(forecast.time*1000+selectedTimezone).getUTCDay())}</p>
-                                <p style={{display:'grid', gridRow:`${index+1}`, justifySelf:'center', alignSelf:'center', textAlign:'center'}}>icon</p>
-                                <p style={{display:'grid', gridRow:`${index+1}`, gridColumn:'3', justifySelf:'center', alignSelf:'center', margin:'0 2rem 0 0', fontSize:'2rem'}}>{`${Math.round(forecast.temperatureMax)}`}</p>
-                                <p style={{display:'grid', gridRow:`${index+1}`, gridColumn:'3', justifySelf:'end', alignSelf:'center', margin:'0 2rem 0 0', fontSize:'2rem'}}>{`${Math.round(forecast.temperatureMin)}`}</p>
+                                <p style={{fontSize:`${3*fontMultiplier}vh`, display:'grid', gridRow:`${index}`, gridColumn:'1', marginLeft:'2rem', alignSelf:'center'}}>{this.dayOfTheWeekHandler(new Date(forecast.time*1000+selectedTimezone).getUTCDay())}</p>
+                            <p style={{display:'grid', gridRow:`${index}`, justifySelf:'center', alignSelf:'center', textAlign:'center'}}><img src={`${iconPath}`} /></p>
+                                <p style={{display:'grid', gridRow:`${index}`, gridColumn:'3', justifySelf:'center', alignSelf:'center', margin:'0 2rem 0 0', fontSize:`${3*fontMultiplier}vh`}}>{`${Math.round(forecast.temperatureMax)}`}</p>
+                                <p style={{display:'grid', gridRow:`${index}`, gridColumn:'3', justifySelf:'end', alignSelf:'center', margin:'0 2rem 0 0', fontSize:`${3*fontMultiplier}vh`}}>{`${Math.round(forecast.temperatureMin)}`}</p>
                               </Fragment> 
                             }
                           })
                           }
                         </div>
                         <hr />
-                      </Fragment>
+                      </div>
                     }
                 {     
-                    <div>                         
-                      <p style={{marginLeft:'2rem'}}>{`Today: ${selectedDailyForecast[selection][0]['summary']} It's currently ${Math.round(selectedCurrentForecast[selection]['temperature'])}°; the high will be ${Math.round(selectedDailyForecast[selection][0]['temperatureMax'])}°.`}</p>
+                    <div style={{height:'100%'}}>                    
+                      <p style={{height:'4vh', lineHeight:'4vh', marginLeft:'2rem'}}>{`Today: ${selectedDailyForecast[selection][0]['summary']} It's currently ${Math.round(selectedCurrentForecast[selection]['temperature'])}°; the high will be ${Math.round(selectedDailyForecast[selection][0]['temperatureMax'])}°.`}</p>
                         <hr />
-                        <div style={{display:'grid', gridTemplateColumns:'1fr 1fr', gridTemplateRows:'1fr'}}>
-                          <div>
-                            <p style={{display:'grid',margin:'0 0 0 2rem', fontSize:'1rem',gridRow:'1', gridColumn:'1',alignSelf:'start',paddingLeft:'3px'}}>SUNRISE</p>
-                <p style={{display:'grid',margin:'0 0 0 2rem', fontSize:'2rem', gridRow:'1', gridColumn:'1',alignSelf:'center'}}>{this.sunDirection('sunrise')}</p>
-                          </div>
-                          <div>
-                            <p style={{display:'grid',margin:'0 0 0 2rem', fontSize:'1rem',gridRow:'1', gridColumn:'2',alignSelf:'start',paddingLeft:'3px'}}>SUNSET</p>
-                            <p style={{display:'grid',margin:'0 0 0 2rem', fontSize:'2rem', gridRow:'1', gridColumn:'2',alignSelf:'center'}}>{this.sunDirection('sunset')}</p>
-                          </div>
+                        <div style={{lineHeight:'4vh', height:'100%', display:'grid', gridTemplateColumns:'1fr 1fr', gridTemplateRows:'1fr 1fr'}}>
+                            <p style={{display:'grid',margin:'0 0 0 2rem', fontSize:`${1*fontMultiplier}vh`, gridRow:'1', gridColumn:'1',alignSelf:'end',paddingLeft:'3px'}}>SUNRISE</p>
+                            <p style={{display:'grid',margin:'0 0 0 2rem', fontSize:`${2*fontMultiplier}vh`, gridRow:'2', gridColumn:'1',alignSelf:'start'}}>{this.sunDirection('sunrise')}</p>
+                            <p style={{display:'grid',margin:'0 0 0 2rem', fontSize:`${1*fontMultiplier}vh`, gridRow:'1', gridColumn:'2',alignSelf:'end',paddingLeft:'3px'}}>SUNSET</p>
+                            <p style={{display:'grid',margin:'0 0 0 2rem', fontSize:`${2*fontMultiplier}vh`, gridRow:'2', gridColumn:'2',alignSelf:'start'}}>{this.sunDirection('sunset')}</p>
                         </div>
                         <hr style={{margin:'0 2rem'}}/>
 
-                        <div style={{display:'grid', gridTemplateColumns:'1fr 1fr', gridTemplateRows:'1fr'}}>
-                          <div>
-                <p style={{display:'grid',margin:'0 0 0 2rem', fontSize:'1rem',gridRow:'1', gridColumn:'1',alignSelf:'start',paddingLeft:'3px'}}>CHANCE OF {selectedDailyForecast[selection][0].precipType!==undefined?selectedDailyForecast[selection][0].precipType.toUpperCase():'RAIN'}</p>
-                            <p style={{display:'grid',margin:'0 0 0 2rem', fontSize:'2rem', gridRow:'1', gridColumn:'1',alignSelf:'center'}}>{
+                        <div style={{lineHeight:'4vh', height:'100%', display:'grid', gridTemplateColumns:'1fr 1fr', gridTemplateRows:'1fr 1fr'}}>
+                            <p style={{display:'grid',margin:'0 0 0 2rem', fontSize:`${1*fontMultiplier}vh`,gridRow:'1', gridColumn:'1',alignSelf:'end',paddingLeft:'3px'}}>CHANCE OF {selectedDailyForecast[selection][0].precipType!==undefined?selectedDailyForecast[selection][0].precipType.toUpperCase():'RAIN'}</p>
+                            <p style={{display:'grid',margin:'0 0 0 2rem', fontSize:`${2*fontMultiplier}vh`, gridRow:'2', gridColumn:'1',alignSelf:'start'}}>{
                             `${Math.round(dailyForecast[cities.indexOf(`${selectedCity}*${selectedCountry}`)][selection][0].precipProbability*100)}%`
                             }</p>
-                          </div>
-                          <div>
-                            <p style={{display:'grid',margin:'0 0 0 2rem', fontSize:'1rem',gridRow:'1', gridColumn:'2',alignSelf:'start',paddingLeft:'3px'}}>HUMIDITY</p>
-                            <p style={{display:'grid',margin:'0 0 0 2rem', fontSize:'2rem', gridRow:'1', gridColumn:'2',alignSelf:'center'}}>{`${selectedCurrentForecast[selection].humidity*100}%`}</p>
-                          </div>
+                            <p style={{display:'grid',margin:'0 0 0 2rem', fontSize:`${1*fontMultiplier}vh`,gridRow:'1', gridColumn:'2',alignSelf:'end',paddingLeft:'3px'}}>HUMIDITY</p>
+                            <p style={{display:'grid',margin:'0 0 0 2rem', fontSize:`${2*fontMultiplier}vh`, gridRow:'2', gridColumn:'2',alignSelf:'start'}}>{`${Math.round(selectedCurrentForecast[selection].humidity*100)}%`}</p>
                         </div>
                         <hr style={{margin:'0 2rem'}}/>
 
-                        <div style={{display:'grid', gridTemplateColumns:'1fr 1fr', gridTemplateRows:'1fr'}}>
-                          <div>
-                            <p style={{display:'grid',margin:'0 0 0 2rem', fontSize:'1rem',gridRow:'1', gridColumn:'1',alignSelf:'start',paddingLeft:'3px'}}>WIND</p>
-                            <p style={{display:'grid',margin:'0 0 0 2rem', fontSize:'2rem', gridRow:'1', gridColumn:'1',alignSelf:'center'}}>{`${this.windDirectionHandler(selectedCurrentForecast[selection].windBearing)}${Math.round(selectedCurrentForecast[selection].windSpeed)} mph`}</p>
-                          </div>
-                          <div>
-                            <p style={{display:'grid',margin:'0 0 0 2rem', fontSize:'1rem',gridRow:'1', gridColumn:'2',alignSelf:'start',paddingLeft:'3px'}}>FEELS LIKE</p>
-                            <p style={{display:'grid',margin:'0 0 0 2rem', fontSize:'2rem', gridRow:'1', gridColumn:'2',alignSelf:'center'}}>{`${Math.round(selectedCurrentForecast[selection].apparentTemperature)}°`}</p>
-                          </div>
+                        <div style={{lineHeight:'4vh', height:'100%', display:'grid', gridTemplateColumns:'1fr 1fr', gridTemplateRows:'1fr 1fr'}}>
+                            <p style={{display:'grid',margin:'0 0 0 2rem', fontSize:`${1*fontMultiplier}vh`,gridRow:'1', gridColumn:'1',alignSelf:'end',paddingLeft:'3px'}}>WIND</p>
+                            <p style={{display:'grid',margin:'0 0 0 2rem', fontSize:`${2*fontMultiplier}vh`, gridRow:'2', gridColumn:'1',alignSelf:'start'}}>{`${this.windDirectionHandler(selectedCurrentForecast[selection].windBearing)}${Math.round(selectedCurrentForecast[selection].windSpeed)} mph`}</p>
+                            <p style={{display:'grid',margin:'0 0 0 2rem', fontSize:`${1*fontMultiplier}vh`,gridRow:'1', gridColumn:'2',alignSelf:'end',paddingLeft:'3px'}}>FEELS LIKE</p>
+                            <p style={{display:'grid',margin:'0 0 0 2rem', fontSize:`${2*fontMultiplier}vh`, gridRow:'2', gridColumn:'2',alignSelf:'start'}}>{`${Math.round(selectedCurrentForecast[selection].apparentTemperature)}°`}</p>
                         </div>
                         <hr style={{margin:'0 2rem'}}/>
 
-                        <div style={{display:'grid', gridTemplateColumns:'1fr 1fr', gridTemplateRows:'1fr'}}>
-                          <div>
-                            <p style={{display:'grid',margin:'0 0 0 2rem', fontSize:'1rem',gridRow:'1', gridColumn:'1',alignSelf:'start',paddingLeft:'3px'}}>PRECIPITATION</p>
-                            <p style={{display:'grid',margin:'0 0 0 2rem', fontSize:'2rem', gridRow:'1', gridColumn:'1',alignSelf:'center'}}>{`${rainfall[cities.indexOf(`${selectedCity}*${selectedCountry}`)]} in`}</p>
-                          </div>
-                          <div>
-                            <p style={{display:'grid',margin:'0 0 0 2rem', fontSize:'1rem',gridRow:'1', gridColumn:'2',alignSelf:'start',paddingLeft:'3px'}}>PRESSURE</p>
-                            <p style={{display:'grid',margin:'0 0 0 2rem', fontSize:'2rem', gridRow:'1', gridColumn:'2',alignSelf:'center'}}>{`${Math.round(selectedCurrentForecast[selection].pressure/33.864)} inHg`}</p>
-                          </div>
+                        <div style={{lineHeight:'4vh', height:'100%', display:'grid', gridTemplateColumns:'1fr 1fr', gridTemplateRows:'1fr 1fr'}}>
+                            <p style={{display:'grid',margin:'0 0 0 2rem', fontSize:`${1*fontMultiplier}vh`,gridRow:'1', gridColumn:'1',alignSelf:'end',paddingLeft:'3px'}}>PRECIPITATION</p>
+                            <p style={{display:'grid',margin:'0 0 0 2rem', fontSize:`${2*fontMultiplier}vh`, gridRow:'2', gridColumn:'1',alignSelf:'start'}}>{`${rainfall[cities.indexOf(`${selectedCity}*${selectedCountry}`)]} in`}</p>
+                            <p style={{display:'grid',margin:'0 0 0 2rem', fontSize:`${1*fontMultiplier}vh`,gridRow:'1', gridColumn:'2',alignSelf:'end',paddingLeft:'3px'}}>PRESSURE</p>
+                            <p style={{display:'grid',margin:'0 0 0 2rem', fontSize:`${2*fontMultiplier}vh`, gridRow:'2', gridColumn:'2',alignSelf:'start'}}>{`${Math.round(selectedCurrentForecast[selection].pressure/33.864)} inHg`}</p>
                         </div>
                         <hr style={{margin:'0 2rem'}}/>
 
-                        <div style={{display:'grid', gridTemplateColumns:'1fr 1fr', gridTemplateRows:'1fr'}}>
-                          <div>
-                            <p style={{display:'grid',margin:'0 0 0 2rem', fontSize:'1rem',gridRow:'1', gridColumn:'1',alignSelf:'start',paddingLeft:'3px'}}>VISIBILITY</p>
-                            <p style={{display:'grid',margin:'0 0 0 2rem', fontSize:'2rem', gridRow:'1', gridColumn:'1',alignSelf:'center'}}>{`${selectedCurrentForecast[selection].visibility} mi`}</p>
-                          </div>
-                          <div>
-                            <p style={{display:'grid',margin:'0 0 0 2rem', fontSize:'1rem',gridRow:'1', gridColumn:'2',alignSelf:'start',paddingLeft:'3px'}}>UV INDEX</p>
-                            <p style={{display:'grid',margin:'0 0 0 2rem', fontSize:'2rem', gridRow:'1', gridColumn:'2',alignSelf:'center'}}>{selectedCurrentForecast[selection].uvIndex}</p>
-                          </div>
+                        <div style={{lineHeight:'4vh', height:'100%', display:'grid', gridTemplateColumns:'1fr 1fr', gridTemplateRows:'1fr 1fr'}}>
+                            <p style={{display:'grid',margin:'0 0 0 2rem', fontSize:`${1*fontMultiplier}vh`,gridRow:'1', gridColumn:'1',alignSelf:'end',paddingLeft:'3px'}}>VISIBILITY</p>
+                            <p style={{display:'grid',margin:'0 0 0 2rem', fontSize:`${2*fontMultiplier}vh`, gridRow:'2', gridColumn:'1',alignSelf:'start'}}>{`${selectedCurrentForecast[selection].visibility} mi`}</p>
+                            <p style={{display:'grid',margin:'0 0 0 2rem', fontSize:`${1*fontMultiplier}vh`,gridRow:'1', gridColumn:'2',alignSelf:'end',paddingLeft:'3px'}}>UV INDEX</p>
+                            <p style={{display:'grid',margin:'0 0 0 2rem', fontSize:`${2*fontMultiplier}vh`, gridRow:'2', gridColumn:'2',alignSelf:'start'}}>{selectedCurrentForecast[selection].uvIndex}</p>
                         </div>
 
-                        { aqiArray.filter(aqi => aqi[selection]).length !== 0?
+                        { aqiArray.filter(aqi => aqi[selection]).length !== 0 && isLoggedIn?
                         <Fragment>
                           <hr style={{margin:'0 2rem'}}/>
-                          <div style={{display:'grid', gridTemplateColumns:'1fr 1fr', gridTemplateRows:'1fr'}}>
-                            <div>
-                              <p style={{display:'grid',margin:'0 0 0 2rem', fontSize:'1rem',gridRow:'1', gridColumn:'1',alignSelf:'start',paddingLeft:'3px'}}>AIR QUALITY INDEX</p>
-                              <p style={{display:'grid',margin:'0 0 0 2rem', fontSize:'2rem', gridRow:'1', gridColumn:'1',alignSelf:'center'}}>{aqiArray.filter(aqi => aqi[selection])[0][selection]}</p>
-                            </div>
-                            <div>
-                              <p style={{display:'grid',margin:'0 0 0 2rem', fontSize:'1rem',gridRow:'1', gridColumn:'2',alignSelf:'start',paddingLeft:'3px'}}>AIR QUALITY</p>
-                              <p style={{display:'grid',margin:'0 0 0 2rem', fontSize:'2rem', gridRow:'1', gridColumn:'2',alignSelf:'center'}}>{this.aqiText(aqiArray.filter(aqi => aqi[selection])[0][selection])}</p>
-                            </div>
+                          <div style={{lineHeight:'4vh', height:'100%', display:'grid', gridTemplateColumns:'1fr 1fr', gridTemplateRows:'1fr 1fr'}}>
+                              <p style={{display:'grid',margin:'0 0 0 2rem', fontSize:`${1*fontMultiplier}vh`,gridRow:'1', gridColumn:'1',alignSelf:'end',paddingLeft:'3px'}}>AIR QUALITY INDEX</p>
+                              <p style={{display:'grid',margin:'0 0 0 2rem', fontSize:`${2*fontMultiplier}vh`, gridRow:'2', gridColumn:'1',alignSelf:'start'}}>{aqiArray.filter(aqi => aqi[selection])[0][selection]}</p>
+                              <p style={{display:'grid',margin:'0 0 0 2rem', fontSize:`${1*fontMultiplier}vh`,gridRow:'1', gridColumn:'2',alignSelf:'end',paddingLeft:'3px'}}>AIR QUALITY</p>
+                              <p style={{display:'grid',margin:'0 0 0 2rem', fontSize:`${2*fontMultiplier}vh`, gridRow:'2', gridColumn:'2',alignSelf:'start'}}>{this.aqiText(aqiArray.filter(aqi => aqi[selection])[0][selection])}</p>
                           </div>
                         </Fragment>
                         :
                         null
                         }
-                    </div>
+                      </div>
                }
-                        
-                    </Fragment>
+                    <div style={{position:'relative', bottom:0}}>
+                      <hr />
+                      <div style={{display:'grid', gridTemplateColumns: '1fr 1fr 1fr'}}>
+                          <p style={{display:'grid', gridColumn:'2/3', justifySelf:'center'}}>...</p>
+                          <p onClick={this.hamburgerButtonHandler}style={{display:'grid', gridColumn:'3/4', justifySelf:'end', marginRight:'2rem'}}>E</p>
+                      </div>
+                    </div>
+                  </div>
                   : null
                }
-               { !cityTileClicked ?
+               { !cityTileClicked && isLoggedIn?
                   <div style={{display:'grid', gridTemplateColumns:'1fr 1fr'}}>
                     <div onClick={this.tempConverter} style={{margin:'1rem 0 0 2rem'}}>
                       <span style={{display:'inline'}}>C°</span><span> / </span><span>F°</span>
                     </div>
                     <button onClick={this.addCityButtonHandler}style={{display:'grid', justifySelf:'end', margin:'1rem 2rem 0 0'}}>+</button>
+                    <button onClick={this.testPoints}>Test Points</button>
                   </div>
                 :
-                  <Fragment>
-                    <hr />
-                    <div style={{display:'grid', gridTemplateColumns: '1fr 1fr 1fr'}}>
-                        <p style={{display:'grid', gridColumn:'2/3', justifySelf:'center'}}>...</p>
-                        <p onClick={this.hamburgerButtonHandler}style={{display:'grid', gridColumn:'3/4', justifySelf:'end', marginRight:'2rem'}}>E</p>
-                    </div>
-                  </Fragment>
+                null
                }
-               {   addCityClicked ?
+               {   addCityClicked && isLoggedIn?
                <form style={{display:'grid'}}>
                  <input type='text' onChange={() => this.cityInputHandler(event)}/>
                  {/* <button type='submit'>Submit</button> */}
@@ -1103,20 +1110,22 @@ class Form extends Component {
                null   }
              
              
-                {   matchedCities.length>=1?
+                {   matchedCities.length>=1 && isLoggedIn?
                 <Fragment>
-                  {matchedCities.map((city, index) => {
-                    let locationId = matchedCities[index][locationId];
-                    let cityName = matchedCities[index]['address']['city'];
-                    let stateName = matchedCities[index]['address']['state'];
-                    let postalCode = matchedCities[index]['address']['postalCode'];
-                    let countryCode = matchedCities[index]['countryCode']
-                    return (
-                    <Fragment>
-                      <p key={locationId} onClick={() => this.addCityHandler(cityName, countryCode)}>{cityName?cityName:null}, {stateName?stateName:null} {postalCode?postalCode:null} {countryCode?countryCode:null}</p>
-                    </Fragment>
-                    );
-                  })}
+                  {matchedCities.map(city => {
+                    let locationId = city[locationId];
+                    let cityName = city['address']['city'];
+                    let stateName = city['address']['state'];
+                    let zip = city['address']['postalCode'];
+                    let countryCode = city['countryCode'];
+                    return (document.querySelectorAll('#tooltip').length >=1 &&
+                    document.querySelectorAll('#tooltip')[0].innerHTML.split(',')[0] === cityName?
+                      <Tooltip open={true} title='Try another city' disableFocusListener={false} disableHoverListener={false} disableTouchListener={false}> 
+                        <p style={{color:'black', fontWeight:'none', textShadow:'none'}} id='tooltip' style={{color:'red'}} key={locationId} onClick={e => this.addCityHandler(cityName, countryCode, zip, e)}>{cityName?cityName:null}, {stateName?stateName:null} {countryCode?countryCode:null}</p>
+                      </Tooltip>
+                    :
+                        <p style={{color:'black', fontWeight:'none', textShadow:'none'}}key={locationId} onClick={e => this.addCityHandler(cityName, countryCode, zip, e)}>{cityName?cityName:null}, {stateName?stateName:null} {countryCode?countryCode:null}</p>
+                  )})}
                 </Fragment>
                 :
                 null    }
