@@ -50,15 +50,19 @@
   background-attachment: fixed;
 }
 .cloudy{
-  background-image: url('../assets/cloudy.gif');
+  background-image: 
+  linear-gradient(
+    rgba(0, 0, 0, 0.2),
+    rgba(0, 0, 0, 0.2)
+  ), url('../assets/cloudy.gif');
   background-size: 100% 100%;
   background-attachment: fixed;
 }
 .partly-cloudy-day{
   background-image: 
   linear-gradient(
-    rgba(0, 0, 0, 0.1),
-    rgba(0, 0, 0, 0.1)
+    rgba(0, 0, 0, 0.2),
+    rgba(0, 0, 0, 0.2)
   ), url('../assets/cloudy.gif');
   background-size: 100% 100%;
   background-attachment: fixed;
@@ -73,8 +77,8 @@
 .hail {
   background-image: 
   linear-gradient(
-    rgba(0, 0, 0, 0.1),
-    rgba(0, 0, 0, 0.1)
+    rgba(0, 0, 0, 0.2),
+    rgba(0, 0, 0, 0.2)
   ), url('../assets/hail.gif');
   background-size: 100% 100%;
   background-attachment: fixed;
@@ -134,8 +138,8 @@
 .partly-cloudy-day1{
   background-image: 
   linear-gradient(
-    rgba(0, 0, 0, 0.1),
-    rgba(0, 0, 0, 0.1)
+    rgba(0, 0, 0, 0.2),
+    rgba(0, 0, 0, 0.2)
   ), url('../assets/cloudy1.gif');
   background-size: 100% 100%;
   background-attachment: fixed;
@@ -150,8 +154,8 @@
 .hail1{
   background-image: 
   linear-gradient(
-    rgba(0, 0, 0, 0.1),
-    rgba(0, 0, 0, 0.1)
+    rgba(0, 0, 0, 0.2),
+    rgba(0, 0, 0, 0.2)
   ), url('../assets/hail1.gif');
   background-size: 100% 100%;
   background-attachment: fixed;
@@ -175,7 +179,11 @@ p {
 .clear-day{
   background-image: url('../assets/clear-day.gif')
 }
-.clear-night{}
+
+#guest-user-button:hover {
+  color:white;
+}
+/* .clear-night{}
 .rain{}
 .snow{}
 .sleet{}
@@ -186,6 +194,6 @@ p {
 .partly-cloudy-night{}
 .hail{}
 .thunderstorm{}
-.tornado{}
+.tornado{} */
 
 

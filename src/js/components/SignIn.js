@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { Fragment } from 'react';
 import Avatar from '@material-ui/core/Avatar';
 import Button from '@material-ui/core/Button';
 import CssBaseline from '@material-ui/core/CssBaseline';
@@ -13,113 +13,84 @@ import Typography from '@material-ui/core/Typography';
 import { makeStyles } from '@material-ui/core/styles';
 import Container from '@material-ui/core/Container';
 
-function Copyright() {
-  return (
-    <Typography variant="body2" color="textSecondary" align="center">
-      {'Copyright © '}
-      <Link color="inherit" href="https://material-ui.com/">
-        Your Website
-      </Link>{' '}
-      {new Date().getFullYear()}
-      {'.'}
-    </Typography>
-  );
-}
-
-const useStyles = makeStyles(theme => ({
+const useStyles = makeStyles({
   paper: {
-    marginTop: theme.spacing(8),
     display: 'flex',
     flexDirection: 'column',
     alignItems: 'center',
-  },
-  avatar: {
-    margin: theme.spacing(1),
-    backgroundColor: theme.palette.secondary.main,
+    justifyContent: 'center',
+    height:'100%'
   },
   form: {
-    width: '100%', // Fix IE 11 issue.
-    marginTop: theme.spacing(1),
+    width: '100%',
+    margin:'2rem 0'
   },
-  submit: {
-    margin: theme.spacing(3, 0, 2),
-  },
-}));
+  contained: {
+    margin:'1rem 0',
+    backgroundColor:'gray'
+  }
+});
 
-export default function SignIn({ signInHandler }) {
+export default function SignIn(props) {
   const classes = useStyles();
 
   return (
-    <Container component="main" maxWidth="xs">
-      <CssBaseline />
-      <div className={classes.paper}>
-        <Avatar className={classes.avatar}>
-          <LockOutlinedIcon />
-        </Avatar>
-        <Typography component="h1" variant="h5">
-          Sign in
-        </Typography>
-        <form className={classes.form} noValidate 
-        onSubmit={(e) => {
-          e.preventDefault();
-          e.persist();
-          console.log(e.target.elements.username.value);
-          console.log(e.target.elements.password.value);
-          const username = e.target.elements.username.value;
-          const password = e.target.elements.password.value;
-          signInHandler(username, password);
-          }
-        }>
-          <TextField
-            variant="outlined"
-            margin="normal"
-            required
-            fullWidth
-            id="username"
-            label="Username"
-            name="username"
-            autoComplete="username"
-            autoFocus
-          />
-          <TextField
-            variant="outlined"
-            margin="normal"
-            required
-            fullWidth
-            name="password"
-            label="Password"
-            type="password"
-            id="password"
-            autoComplete="current-password"
-          />
-          <FormControlLabel
-            control={<Checkbox value="remember" color="primary" />}
-            label="Remember me"
-          />
-          <Button
-            type="submit"
-            fullWidth
-            variant="contained"
-            color="primary"
-            className={classes.submit}
-          >
-            Sign In
-          </Button>
-          <Grid container>
-            <Grid item xs>
-              <Link href="#" variant="body2">
-                Forgot password?
-              </Link>
-            </Grid>
-            <Grid item>
-              <Link href="#" variant="body2">
-                {"Don't have an account? Sign Up"}
-              </Link>
-            </Grid>
-          </Grid>
-        </form>
-      </div>
-        <p style={{textShadow:'none', color:'black', textAlign:'center', fontWeight:400}}>Copyright © Your Website 2020.</p>
-    </Container>
+    <Fragment>
+      <h1 style={{backgroundColor:'#3f51b5', margin:0, padding:'2rem', color:'white'}}>Sign In</h1>
+      <Container style={{height:'80vh', display:'flex', alignItems:'center',
+      justifyContent:'center', maxWidth:'50%'}} component="main" maxWidth={false}>
+        <div className={classes.paper}>
+          <form className={classes.form} noValidate 
+          onSubmit={(e) => {
+            e.preventDefault();
+            e.persist();
+            props.signInHandler(username, password);
+            }
+          }>
+            <TextField
+              variant="outlined"
+              margin="normal"
+              required
+              fullWidth
+              id="username"
+              label="Username"
+              name="username"
+              autoComplete="username"
+              autoFocus
+            />
+            <TextField
+              variant="outlined"
+              margin="normal"
+              required
+              fullWidth
+              name="password"
+              label="Password"
+              type="password"
+              id="password"
+              autoComplete="current-password"
+            />
+            <Button
+              type="submit"
+              fullWidth
+              variant="contained"
+              color="primary"
+              classes={{contained:classes.contained}}
+            >
+              Sign In
+            </Button>
+            <Button
+              id='guest-user-button'
+              fullWidth
+              variant="contained"
+              color='primary'
+              classes={{contained:classes.contained}}
+              onClick={() => props.guestUserLoginHandler()}
+              >
+              Continue as Guest
+            </Button>
+          </form>
+        </div>
+      </Container>
+    </Fragment>
   );
 }

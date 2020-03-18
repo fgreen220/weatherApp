@@ -6,6 +6,49 @@ import { countryCodes } from '../../countryDictionary';
 import '../../styles/style.css';
 import SignIn from './SignIn';
 
+const initialState = {
+  isLoggedIn: false,
+  cities: [],
+  citiesDisplayed: [],
+  countryCode: [],
+  currentCity: undefined,
+  isFahrenheit: true,
+  currentTemp: [],
+  currentHours: '',
+  currentMinutes: '',
+  period: '',
+  addCityClicked: false,
+  cityTileClicked: false,
+  cityInput: '',
+  isAutocomplete: false,
+  matchedCities: [],
+  timezone: [],
+  selectedCity: undefined,
+  selectedCountry: undefined,
+  selectedForecast: [],
+  minTemp: [],
+  maxTemp: [],
+  uvIndex: [],
+  currentForecast: [],
+  hourlyForecast: [],
+  dailyForecast: [],
+  airData: [],
+  aqi: [],
+  aqiArray: [],
+  loadingAirData: false,
+  opacityPercentage: 1,
+  position:'sticky',
+  positionCity:'sticky',
+  overlayDiv: 'initial',
+  fontMultiplier: window.screen.width>1070?1.4:window.screen.width>1820?2:1,
+  swipeStartX: 0,
+  swipeStartY: 0,
+  swipeEndX: 0,
+  swipeEndY: 0,
+  zip: [],
+  isGuestUser: false
+};
+
 class Form extends Component {
     constructor() {
         super();
@@ -16,7 +59,6 @@ class Form extends Component {
             cities: [],
             citiesDisplayed: [],
             countryCode: [],
-            cityId: [],
             currentCity: undefined,
             isFahrenheit: true,
             currentTemp: [],
@@ -31,9 +73,7 @@ class Form extends Component {
             timezone: [],
             selectedCity: undefined,
             selectedCountry: undefined,
-            weather: [],
             selectedForecast: [],
-            weatherDescription: [],
             minTemp: [],
             maxTemp: [],
             uvIndex: [],
@@ -52,8 +92,9 @@ class Form extends Component {
             swipeStartX: 0,
             swipeStartY: 0,
             swipeEndX: 0,
-            swipeEndY: 0
-
+            swipeEndY: 0,
+            zip: [],
+            isGuestUser: false
         };
 
         this.addCityHandler = this.addCityHandler.bind(this);
@@ -64,6 +105,7 @@ class Form extends Component {
         this.darkSkyData = this.darkSkyData.bind(this);
         this.signInHandler = this.signInHandler.bind(this);
         this.testPoints = this.testPoints.bind(this);
+        this.updateLoadedState = this.updateLoadedState.bind(this);
     }
 
     listenScrollEvent = e => {
@@ -96,6 +138,11 @@ class Form extends Component {
     }
 
     componentDidMount () {
+      if(localStorage.getItem('stateObject') && localStorage.getItem('stateObject') !== JSON.stringify(initialState)) {
+        this.setState(prevState => ({prevState,
+          ...JSON.parse(localStorage.getItem('stateObject')),
+          isGuestUser:false, isLoggedIn:false}));
+      }
       this.tick();
       console.log(countryCodes);
       this.intervalTime = setInterval(
@@ -109,6 +156,14 @@ class Form extends Component {
       window.addEventListener('scroll', this.listenScrollEvent);
     }
 
+    componentDidUpdate () {
+      if(localStorage.getItem('stateObject') && this.state.isGuestUser){
+        localStorage.setItem('stateObject', JSON.stringify(this.state));
+      } else if(!localStorage.getItem('stateObject')) {
+        localStorage.setItem('stateObject', JSON.stringify(initialState));
+      }
+    }
+
     tick() {
       let currentUTCHour = new Date().getUTCHours();
       let currentMinutes = new Date().getMinutes();
@@ -119,6 +174,13 @@ class Form extends Component {
         currentMinutes,
         currentHours: currentUTCHour
       });
+    }
+
+    guestUserLoginHandler = () => {
+      this.setState({isLoggedIn:true, isGuestUser:true});
+      // if(this.state.isGuestUser && localStorage.getItem('stateObject')) {
+      //   this.setState(prevState => ({prevState, ...JSON.parse(localStorage.getItem('stateObject'))}));
+      // }
     }
 
     async airData (lat, lon, currentCity) {
@@ -157,7 +219,6 @@ class Form extends Component {
           console.log(data);
           if(i === 0 && data.results.length !== 0){
             this.setState({
-              // airData:{[`${currentCity}${i}`]: data.results}
               airData:[data.results]
             })
           } 
@@ -170,9 +231,8 @@ class Form extends Component {
       }
     }
 
-    async testData (country, city, zip) {
+    async testData (country, city, zip='00000') {
       console.log(country, city, 'Zip: ', zip);
-      console.log(zip === undefined);
       let countryFinal = countryCodes.filter(code => {
         return code[country];
       })[0][country];
@@ -181,7 +241,7 @@ class Form extends Component {
           method: 'get',
           headers: {
               'Content-Type': 'application/json',
-              'zip': `${zip}`,
+              'zip': `${zip?parseInt(zip):0}`,
               'city': `${city}`,
               'country': `${countryFinal}`
           }
@@ -191,48 +251,47 @@ class Form extends Component {
         data = JSON.parse(data);
         if(data.name !== undefined){
         const timezone = data.timezone/3600;
-        const weatherDescription = data.weather[0].description.charAt(0).toUpperCase()+data.weather[0].description.slice(1);
         const rainfall = data.rain?Math.round(data.rain['1h']/25.4):0;
-        const windSpeed = data.wind.speed*2.237;
         // const pressure = Math.round(data.main.pressure/33.864);
         // const visibility = Math.round(data.visibility/1609);
         console.log(data);
-
-        if(this.state.cities.length > 0){
+        if(this.state.cities.filter(item => item === `${city}*${country}`).length>=1) {
+          const cityIndex = this.state.cities.indexOf(`${city}*${country}`);
+          const cityString = this.state.cities[cityIndex];
           this.setState({currentCity: `${city}*${country}`,
-            cityId: [...this.state.cityId, data.id],
+            temp: data.main.temp,
+            addCityClicked: false,
+            timezone: [...this.state.timezone.slice(0,cityIndex),
+              {...this.state.timezone[cityIndex], [cityString]:timezone},
+              ...this.state.timezone.slice(cityIndex+1)],
+            sunrise: [...this.state.sunrise.slice(0,cityIndex), data.sys.sunrise, ...this.state.sunrise.slice(cityIndex+1)],
+            sunset: [...this.state.sunset.slice(0,cityIndex), data.sys.sunset, ...this.state.sunset.slice(cityIndex+1)],
+            rainfall: [...this.state.rainfall.slice(0,cityIndex), rainfall, ...this.state.rainfall.slice(cityIndex+1)],
+            coordinates: [...this.state.coordinates.slice(0,cityIndex),
+              {...this.state.coordinates[cityIndex], city: `${city}*${country}`, lat:data.coord.lat, lon:data.coord.lon},
+              ...this.state.coordinates.slice(cityIndex+1)],
+            });
+        }
+
+        if(this.state.cities.length > 0 &&
+          this.state.cities.filter(item => item === `${city}*${country}`).length===0){
+          this.setState({currentCity: `${city}*${country}`,
             temp: data.main.temp,
             addCityClicked: false,
             timezone: [...this.state.timezone, {[`${city}*${country}`]:timezone}],
-            weather: [...this.state.weather, data.weather[0].main],
-            weatherDescription: [...this.state.weatherDescription, weatherDescription],
             sunrise: [...this.state.sunrise, data.sys.sunrise],
             sunset: [...this.state.sunset, data.sys.sunset],
             rainfall: [...this.state.rainfall, rainfall],
-            humidity: [...this.state.humidity, data.main.humidity],
-            windSpeed: [...this.state.windSpeed, windSpeed],
-            windDirection: [...this.state.windDirection, data.wind.deg],
-            // pressure: [...this.state.pressure, pressure],
-            // visibility: [...this.state.visibility, visibility],
             coordinates: [...this.state.coordinates,{city: `${city}*${country}`, lat:data.coord.lat, lon:data.coord.lon}],
-
             });
         } else if (this.state.cities.length === 0) {
             this.setState({currentCity: `${city}*${country}`,
-              cityId: [...this.state.cityId, data.id],
               temp: data.main.temp,
               addCityClicked: false,
               timezone: [{[`${city}*${country}`]:timezone}],
-              weather: [data.weather[0].main], 
-              weatherDescription: [weatherDescription],
               sunrise: [data.sys.sunrise],
               sunset: [data.sys.sunset],
               rainfall: [rainfall],
-              humidity: [data.main.humidity],
-              windSpeed: [windSpeed],
-              windDirection: [data.wind.deg],
-              // pressure: [pressure],
-              // visibility: [visibility],
               coordinates: [{city: `${city}*${country}`,lat:data.coord.lat, lon:data.coord.lon}],
             });
         }
@@ -241,7 +300,7 @@ class Form extends Component {
       .catch(e => console.error(e))
     }
     
-    async darkSkyData (city, country, latitude, longitude, zip) {
+    async darkSkyData (city, country, latitude, longitude, zip='00000') {
       console.log(latitude, longitude); 
       
       await fetch(`http://localhost:3000/darkSky`, {
@@ -262,11 +321,25 @@ class Form extends Component {
             hourlyForecast: [{[`${city}*${country}`]: data.hourly.data.slice(1,25)}],
             dailyForecast: [{[`${city}*${country}`]: data.daily.data}]
           });
-        } else if(this.state.currentForecast.length >= 1){
+        } else if(this.state.currentForecast.length >= 1 &&
+          this.state.currentForecast.filter(elem => elem[`${city}*${country}`]).length === 0){
             this.setState({
               currentForecast: [...this.state.currentForecast, {[`${city}*${country}`]: data.currently}],
               hourlyForecast: [...this.state.hourlyForecast, {[`${city}*${country}`]: data.hourly.data.slice(1,25)}],
               dailyForecast: [...this.state.dailyForecast, {[`${city}*${country}`]: data.daily.data}],
+            });
+          } else if(this.state.currentForecast.filter(elem => elem[`${city}*${country}`]).length >= 1) {
+            const forecastIndex = this.state.currentForecast.findIndex(cast => cast[`${city}*${country}`]) 
+            this.setState({
+              currentForecast: [...this.state.currentForecast.slice(0,forecastIndex),
+                {...this.state.currentForecast[forecastIndex], [`${city}*${country}`]: data.currently},
+                ...this.state.currentForecast.slice(forecastIndex+1)],
+              hourlyForecast: [...this.state.hourlyForecast.slice(0,forecastIndex),
+                {...this.state.hourlyForecast[forecastIndex], [`${city}*${country}`]: data.hourly.data.slice(1,25)},
+                ...this.state.hourlyForecast.slice(forecastIndex+1)],
+              dailyForecast: [...this.state.dailyForecast.slice(0,forecastIndex),
+                {...this.state.dailyForecast[forecastIndex], [`${city}*${country}`]: data.daily.data},
+                ...this.state.dailyForecast.slice(forecastIndex+1)]
             });
           }
 
@@ -281,10 +354,10 @@ class Form extends Component {
       } else {
         currentTemp = parseInt((currentTemp * 9/5) + 32);
       }
-      this.setState(prevState => ({
+      this.setState({
         currentTemp,
-        isFahrenheit: !prevState.isFahrenheit
-      }));
+        isFahrenheit: !this.state.isFahrenheit
+      });
     }
 
     forecastTempConverter= (temp) => {
@@ -297,31 +370,332 @@ class Form extends Component {
     }
 
     addCityButtonHandler = () => {
-      this.setState(prevState => ({
-        addCityClicked: !prevState.addCityClicked
-      }));
+      this.setState({
+        addCityClicked: !this.state.addCityClicked
+      });
     }
 
-    async addCityHandler (city, country, zip, e) {
+    async updateLoadedState (city, country, zip='00000') {
+      console.log('loading updated state *****************')
+      let cities = this.state.cities;
+      for(let i = 0; i<cities.length;i++) {
+        city = cities[i].split('*')[0];
+        country = cities[i].split('*')[1];
+        zip = this.state.zip[i];
+        console.log('Ziiiiiiiiiiiiiiiiiiiiiiiiip', zip)
+        await this.testData(country, city, zip?parseInt(zip):0);
+        console.log('loading test data *****************')
+        await this.darkSkyData(city,
+          country,
+          this.state.coordinates.filter(coords => coords.city === `${city}*${country}`)[0].lat,
+          this.state.coordinates.filter(coords => coords.city === `${city}*${country}`)[0].lon);
+        console.log('loading darksky data *****************')
+        await this.airData(this.state.coordinates.filter(coords => coords.city === `${city}*${country}`)[0].lat,
+        this.state.coordinates.filter(coords => coords.city === `${city}*${country}`)[0].lon,
+        `${city}*${country}`); 
+        console.log('loading air data *****************')
+        if(this.state.currentCity === `${city}*${country}`) {
+          if(this.state.airData.length !== 0){
+            this.state.airData.forEach((dataPoint, index) => {
+              let concentrationValue = undefined;
+              let aqiHigh = undefined;
+              let aqiLow = undefined;
+              let breakPointHigh = undefined;
+              let breakPointLow = undefined;
+              console.log(dataPoint);
+              if(dataPoint.length>=1){
+                switch(dataPoint[0]['parameter']) {
+                  case 'pm25':
+                    concentrationValue = dataPoint.reduce((total, valueObject)=> {
+                      return total + valueObject.value;
+                    },0)/24;
+
+                    aqiHigh = concentrationValue<=12?50:
+                    concentrationValue>12&&concentrationValue<=35.4?100:
+                    concentrationValue>35.4&&concentrationValue<=55.4?150:
+                    concentrationValue>55.4&&concentrationValue<=150.4?200:
+                    concentrationValue>150.4&&concentrationValue<=250.4?300:
+                    concentrationValue>250.4&&concentrationValue<=350.4?400:
+                    concentrationValue>350.4&&concentrationValue<=500.4?500:
+                    999;
+
+                    aqiLow = concentrationValue<=12?0:
+                    concentrationValue>12&&concentrationValue<=35.4?51:
+                    concentrationValue>35.4&&concentrationValue<=55.4?101:
+                    concentrationValue>55.4&&concentrationValue<=150.4?151:
+                    concentrationValue>150.4&&concentrationValue<=250.4?201:
+                    concentrationValue>250.4&&concentrationValue<=350.4?301:
+                    concentrationValue>350.4&&concentrationValue<=500.4?401:
+                    501;
+                    
+                    breakPointHigh = aqiHigh===50?12:
+                    aqiHigh===100?35.4:
+                    aqiHigh===150?55.4:
+                    aqiHigh===200?150.4:
+                    aqiHigh===300?250.4:
+                    aqiHigh===400?350.4:
+                    aqiHigh===500?500.4:
+                    99999.9;
+
+                    breakPointLow = aqiHigh===50?0:
+                    aqiHigh===100?12:
+                    aqiHigh===150?35.4:
+                    aqiHigh===200?55.4:
+                    aqiHigh===300?150.4:
+                    aqiHigh===400?250.4:
+                    aqiHigh===500?350.4:
+                    500.4;
+                    break;
+                  case 'pm10':
+                    concentrationValue = dataPoint.reduce((total, valueObject)=> {
+                      return total + valueObject.value;
+                    },0)/24;
+
+                    aqiHigh = concentrationValue<=54?50:
+                    concentrationValue>54&&concentrationValue<=154?100:
+                    concentrationValue>154&&concentrationValue<=254?150:
+                    concentrationValue>254&&concentrationValue<=354?200:
+                    concentrationValue>354&&concentrationValue<=424?300:
+                    concentrationValue>424&&concentrationValue<=504?400:
+                    concentrationValue>504&&concentrationValue<=604?500:
+                    999;
+
+                    aqiLow = concentrationValue<=54?0:
+                    concentrationValue>54&&concentrationValue<=154?51:
+                    concentrationValue>154&&concentrationValue<=254?101:
+                    concentrationValue>254&&concentrationValue<=354?151:
+                    concentrationValue>354&&concentrationValue<=424?201:
+                    concentrationValue>424&&concentrationValue<=504?301:
+                    concentrationValue>504&&concentrationValue<=604?401:
+                    501;
+                    
+                    breakPointHigh = aqiHigh===50?54:
+                    aqiHigh===100?154:
+                    aqiHigh===150?254:
+                    aqiHigh===200?354:
+                    aqiHigh===300?424:
+                    aqiHigh===400?504:
+                    aqiHigh===500?604:
+                    99999.9;
+                    
+                    breakPointLow = aqiHigh===50?0:
+                    aqiHigh===100?55:
+                    aqiHigh===150?154:
+                    aqiHigh===200?254:
+                    aqiHigh===300?354:
+                    aqiHigh===400?424:
+                    aqiHigh===500?504:
+                    604;
+
+                    break;
+                  case 'o3':
+                    concentrationValue = dataPoint.reduce((total,valueObject)=> {
+                      return total + valueObject.value;
+                    },0)*24.45/48/8000;
+
+                    aqiHigh = concentrationValue<=0.054?50:
+                    concentrationValue>0.054&&concentrationValue<=0.07?100:
+                    concentrationValue>0.07&&concentrationValue<=0.085?150:
+                    concentrationValue>0.085&&concentrationValue<=0.105?200:
+                    300;
+
+                    aqiLow = concentrationValue<=0.054?0:
+                    concentrationValue>0.054&&concentrationValue<=0.07?51:
+                    concentrationValue>0.07&&concentrationValue<=0.085?101:
+                    concentrationValue>0.085&&concentrationValue<=0.105?151:
+                    201;
+                    
+                    breakPointHigh = aqiHigh===50?0.054:
+                    aqiHigh===100?0.07:
+                    aqiHigh===150?0.085:
+                    aqiHigh===200?0.105:
+                    0.2;
+                    
+                    breakPointLow = aqiHigh===50?0:
+                    aqiHigh===100?0.054:
+                    aqiHigh===150?0.07:
+                    aqiHigh===200?0.085:
+                    0.105;
+
+                    break;
+                  case 'co':
+                    concentrationValue = dataPoint.reduce((total, valueObject)=> {
+                      return total + valueObject.value;
+                    },0)*24.45/28.01/8000;
+
+                    aqiHigh = concentrationValue<=4.4?50:
+                    concentrationValue>4.4&&concentrationValue<=9.4?100:
+                    concentrationValue>9.4&&concentrationValue<=12.4?150:
+                    concentrationValue>12.4&&concentrationValue<=15.4?200:
+                    concentrationValue>15.4&&concentrationValue<=30.4?300:
+                    concentrationValue>30.4&&concentrationValue<=40.4?400:
+                    concentrationValue>40.4&&concentrationValue<=50.4?500:
+                    999;
+
+                    aqiLow = concentrationValue<=4.4?0:
+                    concentrationValue>4.4&&concentrationValue<=9.4?51:
+                    concentrationValue>9.4&&concentrationValue<=12.4?101:
+                    concentrationValue>12.4&&concentrationValue<=15.4?151:
+                    concentrationValue>15.4&&concentrationValue<=30.4?201:
+                    concentrationValue>30.4&&concentrationValue<=40.4?301:
+                    concentrationValue>40.4&&concentrationValue<=50.4?401:
+                    501;
+                    
+                    breakPointHigh = aqiHigh===50?4.4:
+                    aqiHigh===100?9.4:
+                    aqiHigh===150?12.4:
+                    aqiHigh===200?15.4:
+                    aqiHigh===300?30.4:
+                    aqiHigh===400?40.4:
+                    aqiHigh===500?50.4:
+                    99999;
+                    
+                    breakPointLow = aqiHigh===50?0:
+                    aqiHigh===100?4.4:
+                    aqiHigh===150?9.4:
+                    aqiHigh===200?12.4:
+                    aqiHigh===300?15.4:
+                    aqiHigh===400?30.4:
+                    aqiHigh===500?40.4:
+                    50.4;
+
+                    break;
+                  case 'so2':
+                    concentrationValue = dataPoint.reduce((total, valueObject)=> {
+                      return total + valueObject.value;
+                    },0)*24.45/64.066/24;
+
+                    aqiHigh = concentrationValue<=304?-1:
+                    concentrationValue>304&&concentrationValue<=604?300:
+                    concentrationValue>604&&concentrationValue<=804?400:
+                    concentrationValue>804&&concentrationValue<=1004?500:
+                    999;
+
+                    aqiLow = concentrationValue<=304?-1:
+                    concentrationValue>304&&concentrationValue<=604?201:
+                    concentrationValue>604&&concentrationValue<=804?301:
+                    concentrationValue>804&&concentrationValue<=1004?401:
+                    501;
+                    
+                    breakPointHigh = aqiHigh===-1?304:
+                    aqiHigh===300?604:
+                    aqiHigh===400?804:
+                    aqiHigh===500?1004:
+                    99999;
+                    
+                    breakPointLow = aqiHigh===-1?0:
+                    aqiHigh===300?304:
+                    aqiHigh===400?604:
+                    aqiHigh===500?804:
+                    1004;
+
+                    break;
+                  case 'no2':
+                    concentrationValue = dataPoint.reduce((total, valueObject)=> {
+                      return total + valueObject.value;
+                    },0)*24.45/46.0055;
+
+                    aqiHigh = concentrationValue<=53?50:
+                    concentrationValue>53&&concentrationValue<=100?100:
+                    concentrationValue>100&&concentrationValue<=360?150:
+                    concentrationValue>360&&concentrationValue<=649?200:
+                    concentrationValue>649&&concentrationValue<=1249?300:
+                    concentrationValue>1249&&concentrationValue<=1649?400:
+                    concentrationValue>1649&&concentrationValue<=2049?500:
+                    999;
+
+                    aqiLow = concentrationValue<=53?0:
+                    concentrationValue>53&&concentrationValue<=100?51:
+                    concentrationValue>100&&concentrationValue<=360?101:
+                    concentrationValue>360&&concentrationValue<=649?151:
+                    concentrationValue>649&&concentrationValue<=1249?201:
+                    concentrationValue>1249&&concentrationValue<=1649?301:
+                    concentrationValue>1649&&concentrationValue<=2049?401:
+                    501;
+                    
+                    breakPointHigh = aqiHigh===50?53:
+                    aqiHigh===100?100:
+                    aqiHigh===150?360:
+                    aqiHigh===200?649:
+                    aqiHigh===300?1249:
+                    aqiHigh===400?1649:
+                    aqiHigh===500?2049:
+                    99999;
+                    
+                    breakPointLow = aqiHigh===50?0:
+                    aqiHigh===100?54:
+                    aqiHigh===150?100:
+                    aqiHigh===200?360:
+                    aqiHigh===300?649:
+                    aqiHigh===400?1249:
+                    aqiHigh===500?1649:
+                    2049;
+
+                    break;
+                  default:
+                    console.log(dataPoint);
+                }
+              }
+              const aqi = ((aqiHigh-aqiLow)/(breakPointHigh-breakPointLow))*(concentrationValue-breakPointLow)+aqiLow;
+              this.setState({
+                aqi: [...this.state.aqi, aqi]
+              })
+              if(index === this.state.airData.length-1 && this.state.aqiArray.filter(aqi => aqi[`${city}*${country}`]).length>=1){
+                const aqiIndex = this.state.aqiArray.findIndex(aqi => typeof(aqi[`${city}*${country}`]) === 'number');
+                this.setState({
+                  aqiArray: [...this.state.aqiArray.slice(0,aqiIndex),
+                    {...this.state.aqiArray[aqiIndex], [`${city}*${country}`]: Math.round(this.state.aqi.reduce((a, b) => {
+                      return Math.max(a,b);
+                    }, 0))}, ...this.state.aqiArray.slice(aqiIndex+1)],
+                  airData: [],
+                  aqi: []
+                })
+              };
+              if(index === this.state.airData.length-1 && this.state.aqiArray.filter(aqi => aqi[`${city}*${country}`]).length===0){
+                this.setState({
+                  aqiArray: [...this.state.aqiArray, {[this.state.currentCity]: Math.round(this.state.aqi.reduce((a, b) => {
+                    return Math.max(a,b);
+                  }, 0))}],
+                  airData: [],
+                  aqi: []
+                })
+              };
+              console.log(`${dataPoint[0]['parameter']} value: `, aqi);
+            })
+        } 
+      } else {
+        // e.target.id = `tooltip`;
+        // setTimeout(() => {
+        //   document.querySelectorAll(`#tooltip`)[0].id='';
+        // },4000);
+        console.log('try another city');
+      }
+    }
+  }
+    async addCityHandler (city, country, zip='00000', e) {
       e.persist();
       console.log(e);
       const cities = this.state.cities;
       const countryCode = this.state.countryCode;
       const fahrenheit = this.state.fahrenheit;
       if(cities.filter(item => item === city).length === 0 || countryCode.filter(item => item === country).length === 0){
-        await this.testData(country, city, zip);
+        await this.testData(country, city, zip?parseInt(zip):0);
       }
       if((cities.filter(item => item === city).length===0 ||
       countryCode.filter(item => item === country).length === 0) && 
       (fahrenheit?fahrenheit.filter(item => typeof(item[`${city}*${country}`]) === 'number').length !== 0:null ||
       this.state.currentCity === `${city}*${country}`)) {
         console.log(this.state.currentCity);
-        this.setState(prevState => ({
-          cities: [...prevState.cities, `${city}*${country}`],
+        this.setState({
+          cities: [...this.state.cities, `${city}*${country}`],
           countryCode: [...this.state.countryCode, country],
+          zip: [...this.state.zip, zip?parseInt(zip):0],
           matchedCities: []
-          }));
-        await this.darkSkyData(city, country, this.state.coordinates.filter(coords => coords.city === `${city}*${country}`)[0].lat, this.state.coordinates.filter(coords => coords.city === `${city}*${country}`)[0].lon);
+          });
+        await this.darkSkyData(city,
+          country,
+          this.state.coordinates.filter(coords => coords.city === `${city}*${country}`)[0].lat,
+          this.state.coordinates.filter(coords => coords.city === `${city}*${country}`)[0].lon);
         console.log('Current Forecast: ',this.state.currentForecast);
         console.log('Hourly Forecast: ', this.state.hourlyForecast);
         console.log('Daily Forecast: ', this.state.dailyForecast);
@@ -329,7 +703,9 @@ class Form extends Component {
         this.setState({
           loadingAirData: true
         });
-        await this.airData(this.state.coordinates.filter(coords => coords.city === `${city}*${country}`)[0].lat,this.state.coordinates.filter(coords => coords.city === `${city}*${country}`)[0].lon, `${city}*${country}`); 
+        await this.airData(this.state.coordinates.filter(coords => coords.city === `${city}*${country}`)[0].lat,
+        this.state.coordinates.filter(coords => coords.city === `${city}*${country}`)[0].lon,
+        `${city}*${country}`); 
         if(this.state.airData.length !== 0){
           this.state.airData.forEach((dataPoint, index) => {
             let concentrationValue = undefined;
@@ -593,6 +969,7 @@ class Form extends Component {
       }
       } else {
         e.target.id = `tooltip`;
+        console.log(e.target);
         setTimeout(() => {
           document.querySelectorAll(`#tooltip`)[0].id='';
         },4000);
@@ -841,6 +1218,7 @@ class Form extends Component {
       })
       .then(response => response.json())
       .then(data => {
+        console.log(initialState);
         if(data.isLoggedIn && data.state === undefined) {
           console.log(data);
           this.setState({
@@ -854,6 +1232,7 @@ class Form extends Component {
               isLoggedIn: true,
               id:data.id,
             })
+            this.updateLoadedState();
           } 
         else {
           console.log('Invalid login')
@@ -880,8 +1259,7 @@ class Form extends Component {
     }
 
     render() {
-        const { currentCity,
-          isFahrenheit,
+        const {isFahrenheit,
           currentHours,
           currentMinutes,
           period,
@@ -890,20 +1268,14 @@ class Form extends Component {
           cities,
           matchedCities,
           isAutocomplete,
-          cityId,
           timezone,
           selectedCity,
           selectedCountry,
-          weather,
           countryCode,
           selectedForecast,
-          weatherDescription,
           sunrise,
           sunset,
           rainfall,
-          humidity,
-          windSpeed,
-          windDirection,
           coordinates,
           currentForecast,
           hourlyForecast,
@@ -925,7 +1297,10 @@ class Form extends Component {
         return (
           <Fragment>
               { !isLoggedIn ?
-                <SignIn signInHandler={this.signInHandler}/>
+                <SignIn 
+                signInHandler={this.signInHandler}
+                guestUserLoginHandler={this.guestUserLoginHandler}
+                />
               :
               cities.length >= 1 && !cityTileClicked && currentForecast === undefined && loadingAirData === true && isLoggedIn?
                   <div>

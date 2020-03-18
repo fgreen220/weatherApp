@@ -21,16 +21,14 @@ app.get('/', (request, response) => {
 
 app.get('/currentWeather', (request, response) => {
   let { zip, country, city} = request.headers;
-  console.log(zip === 'undefined');
-  if(zip.split('').filter(char => char === ' ').length >=1 || zip === 'undefined'){
+  if(zip.split('').filter(char => char === ' ').length >=1 || typeof(parseInt(zip)) !== 'number' || zip <= 0){
     https.get(`https://api.openweathermap.org/data/2.5/weather?q=${city},${country}&appid=${config.openWeatherKey}&lang=en
     `, resp => {
       let data = '';
-  
       resp.on('data', chunk => {
         data += chunk;
       })
-  
+      
       resp.on('end', () => {
         response.setHeader('Content-Type', 'application/json');
         response.send(JSON.stringify(data));
