@@ -183,6 +183,33 @@ p {
 #guest-user-button:hover {
   color:white;
 }
+
+#cityInputDrawer .MuiDrawer-paperAnchorBottom {
+  height:97vh;
+}
+
+#city-input-form .MuiTextField-root .MuiInputBase-root input{
+  padding:5px 0;
+}
+
+#city-input-form .MuiTextField-root .MuiInput-underline:before {
+  border-bottom-width:0px;
+}
+
+#city-input-form .MuiTextField-root .MuiInput-underline:after {
+  border-bottom-width:0px;
+}
+
+#city-input-form .MuiTextField-root {
+  background-color:lightgray;
+  border-radius:6px;
+}
+
+
+
+
+
+
 /* .clear-night{}
 .rain{}
 .snow{}
@@ -195,5 +222,7 @@ p {
 .hail{}
 .thunderstorm{}
 .tornado{} */
+
+
 
 

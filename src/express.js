@@ -119,7 +119,7 @@ app.get('/autocomplete', (request, response) => {
 })
 
 app.get('/users', db.getUsers)
-app.post('/login', db.getUsers)
+app.get('/login', db.getUsers)
 app.post('/users', db.createUser)
 app.put('/users/:id', db.updateUser)
 app.delete('/users/:id', db.deleteUser)

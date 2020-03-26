@@ -1,7 +1,22 @@
 const HtmlWebPackPlugin = require("html-webpack-plugin");
+const path = require('path');
 
 
 module.exports = {
+    mode: 'development',
+    devtool: 'source-map',
+    resolve: {
+        extensions: ['.js']
+    },
+    devServer:{
+        contentBase: './dist',
+        port: 8080,
+        historyApiFallback: true
+    },
+    output: {
+        path: path.resolve(__dirname, 'dist'),
+        publicPath: '/'
+    },
     module: {
         rules: [
             {
@@ -34,6 +49,11 @@ module.exports = {
                     },
                 ],
             },
+            {
+                enforce: 'pre',
+                test: /\.js$/,
+                loader: 'source-map-loader'
+            }
         ],
     },
     plugins: [

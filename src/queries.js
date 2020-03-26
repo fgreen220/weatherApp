@@ -10,14 +10,15 @@ const pool = new Pool({
 
 const getUsers = (request, response) => {
   const { username, password } = request.headers;
-  if (request.method === 'GET') {
+  console.log(username, password)
+  if (!username && !password) {
     pool.query('SELECT * FROM users ORDER BY id ASC', (error, results) => {
       if (error) {
         throw error
       }
       response.status(200).json(results.rows)
     })
-  } else if (request.method === 'POST') {
+  } else if (username && password) {
     pool.query('SELECT * FROM users WHERE username = $1 AND password = $2', [username, password], (error, results) => {
       if (error) {
         throw error
