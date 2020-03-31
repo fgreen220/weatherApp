@@ -1,6 +1,8 @@
 import React, { Fragment } from 'react';
 
 const HourlyForecast = (props) => {
+  document.getElementById('noScrollDiv') ? document.getElementById('noScrollDiv').focus() : null;
+
   return(
     <Fragment>
       <div style={{background:'inherit', position:'sticky', top:'24vh', margin:'25vh 0 0 0', zIndex:5}}>
@@ -32,7 +34,9 @@ const HourlyForecast = (props) => {
             props.selectedHourlyForecast[props.selection].map((forecast, index) => {
               let iconSelection = props.iconSelector(forecast['icon']);
               return <div key={`${forecast.time}${index}`} style={{display:'grid', width:'12.5vw'}}>
-                <p style={{display:'grid', gridRow:'1', fontSize:'min(4vw, 20px)', justifySelf:'center', whiteSpace:'nowrap'}}>{props.timezoneHandler(forecast.time*1000)}</p>
+                <p style={{display:'grid', gridRow:'1', fontSize:'min(4vw, 20px)', justifySelf:'center', whiteSpace:'nowrap'}}>
+                  {props.timezoneHandler(forecast.time*1000, 'hourlyForecast', props.cities.indexOf(props.selection))}
+                </p>
                 <img src={`${iconSelection}`} style={{display:'grid', gridRow:'2', justifySelf:'center'}}/>
                 <p style={{display:'grid', gridRow:'3', fontSize:'min(4vw, 20px)', justifySelf:'center'}}>
                   {`${!props.tempInCelsius ? Math.round(forecast.temperature) :

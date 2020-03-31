@@ -38,10 +38,10 @@
     "express": "^4.17.1",
     "https": "^1.0.0",
     "pg": "^7.18.1",
+    "rc-swipeout": "^2.0.11",
     "react": "^16.12.0",
     "react-dom": "^16.12.0",
     "react-router-dom": "^5.1.2",
-    "react-swipe-to-delete-component": "^0.5.4",
     "style-loader": "^1.1.3"
   }
 }

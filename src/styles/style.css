@@ -14,40 +14,33 @@
 .clear-day{
   background-image: url('../assets/clear-day.gif');
   background-size: 100% 100%;
-  background-attachment: fixed;
 }
 .clear-night{
   background-image: url('../assets/clear-night.gif');
   background-size: 100% 100%;
-  background-attachment: fixed;
 }
 
 .rain{
   background-image: url('../assets/rain.gif');
   background-size: 100% 100%;
-  background-attachment: fixed;
 }
 
 .snow{
   background-image: url('../assets/snow.gif');
   background-size: 100% 100%;
-  background-attachment: fixed;
 }
 
 .sleet{
   background-image: url('../assets/snow.gif');
   background-size: 100% 100%;
-  background-attachment: fixed;
 }
 .wind{
   background-image: url('../assets/wind.gif');
   background-size: 100% 100%;
-  background-attachment: fixed;
 }
 .fog{
   background-image: url('../assets/fog.gif');
   background-size: 100% 100%;
-  background-attachment: fixed;
 }
 .cloudy{
   background-image: 
@@ -56,7 +49,6 @@
     rgba(0, 0, 0, 0.2)
   ), url('../assets/cloudy.gif');
   background-size: 100% 100%;
-  background-attachment: fixed;
 }
 .partly-cloudy-day{
   background-image: 
@@ -65,14 +57,12 @@
     rgba(0, 0, 0, 0.2)
   ), url('../assets/cloudy.gif');
   background-size: 100% 100%;
-  background-attachment: fixed;
   z-index:6;
 }
 
 .partly-cloudy-night{
   background-image: url('../assets/cloudy-night.gif');
   background-size: 100% 100%;
-  background-attachment: fixed;
 }
 .hail {
   background-image: 
@@ -81,59 +71,48 @@
     rgba(0, 0, 0, 0.2)
   ), url('../assets/hail.gif');
   background-size: 100% 100%;
-  background-attachment: fixed;
 }
 .tornado {
   background-image: url('../assets/tornado.gif');
   background-size: 100% 100%;
-  background-attachment: fixed;
 }
 .thunderstorm {
   background-image: url('../assets/thunderstorm.gif');
   background-size: 100% 100%;
-  background-attachment: fixed;
 }
 .clear-day1{
   background-image: url('../assets/clear-day1.gif');
   background-size: 100% 100%;
-  background-attachment: fixed;
 }
 .clear-night1{
   background-image: url('../assets/clear-night1.gif');
   background-size: 100% 100%;
-  background-attachment: fixed;
 }
 .rain1{
   background-image: url('../assets/rain1.gif');
   background-size: 100% 100%;
-  background-attachment: fixed;
 }
 
 .snow1{
   background-image: url('../assets/snow1.gif');
   background-size: 100% 100%;
-  background-attachment: fixed;
 }
 
 .sleet1{
   background-image: url('../assets/snow1.gif');
   background-size: 100% 100%;
-  background-attachment: fixed;
 }
 .wind1{
   background-image: url('../assets/wind1.gif');
   background-size: 100% 100%;
-  background-attachment: fixed;
 }
 .fog1{
   background-image: url('../assets/fog1.gif');
   background-size: 100% 100%;
-  background-attachment: fixed;
 }
 .cloudy1{
   background-image: url('../assets/cloudy1.gif');
   background-size: 100% 100%;
-  background-attachment: fixed;
 }
 .partly-cloudy-day1{
   background-image: 
@@ -142,14 +121,12 @@
     rgba(0, 0, 0, 0.2)
   ), url('../assets/cloudy1.gif');
   background-size: 100% 100%;
-  background-attachment: fixed;
   z-index:6;
 }
 
 .partly-cloudy-night1{
   background-image: url('../assets/cloudy-night1.gif');
   background-size: 100% 100%;
-  background-attachment: fixed;
 }
 .hail1{
   background-image: 
@@ -158,17 +135,14 @@
     rgba(0, 0, 0, 0.2)
   ), url('../assets/hail1.gif');
   background-size: 100% 100%;
-  background-attachment: fixed;
 }
 .tornado1{
   background-image: url('../assets/tornado1.gif');
   background-size: 100% 100%;
-  background-attachment: fixed;
 }
 .thunderstorm1{
   background-image: url('../assets/thunderstorm1.gif');
   background-size: 100% 100%;
-  background-attachment: fixed;
 }
 
 p {
@@ -204,6 +178,8 @@ p {
   background-color:lightgray;
   border-radius:6px;
 }
+
+
 
 
 

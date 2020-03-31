@@ -1,4 +1,4 @@
-import React, { Fragment, useState } from 'react';
+import React, { Fragment, useState, useEffect } from 'react';
 import Button from '@material-ui/core/Button';
 import TextField from '@material-ui/core/TextField';
 import { Link as MaterialLink } from '@material-ui/core';
@@ -37,6 +37,17 @@ export default function SignIn(props) {
     setPasswordEntry(() => event.target.value);
   }
 
+  const handleFocus = (targetFocusId) => {
+    document.getElementById(targetFocusId).focus();
+  }
+
+  const [entryPage, setEntryPage] = useState('signIn');
+  useEffect(() => {
+    document.getElementById('signInUsername') ? document.getElementById('signInUsername').focus() : null;
+    document.getElementById('signUpUsername') ? document.getElementById('signUpUsername').focus() : null; 
+  }, [entryPage])
+
+
   return (
     <Router>
       <Switch>
@@ -62,7 +73,8 @@ export default function SignIn(props) {
                     label="Username"
                     name="username"
                     autoComplete="username"
-                    autoFocus
+                    id='signInUsername'
+                    tabIndex='0'
                   />
                   <TextField
                     variant="outlined"
@@ -77,7 +89,7 @@ export default function SignIn(props) {
                     autoComplete="current-password"
                   />
                   <div style={{display:'flex', justifyContent:'space-between'}}>
-                    <MaterialLink component={Link} to='/signup' style={{cursor:'pointer'}}>Sign Up</MaterialLink>
+                    <MaterialLink component={Link} to='/signup' style={{cursor:'pointer'}} onClick={() => setEntryPage(() => 'signUp')}>Sign Up</MaterialLink>
 
                     <MaterialLink style={{cursor:'pointer'}} onClick={() => {
                       props.guestUserLoginHandler();
@@ -120,11 +132,11 @@ export default function SignIn(props) {
                   margin="normal"
                   required
                   fullWidth
-                  id="username"
+                  id="signUpUsername"
                   label="Username"
                   name="username"
                   autoComplete="username"
-                  autoFocus
+                  tabIndex='0'
                 />
                 <TextField
                   variant="outlined"
@@ -149,7 +161,7 @@ export default function SignIn(props) {
                 </Button>
               </form>
               <div style={{display:'flex', justifyContent:'center'}}>
-                <MaterialLink component={Link} to='/' style={{cursor:'pointer'}}>Already have an account? Sign In</MaterialLink>
+                <MaterialLink component={Link} to='/' style={{cursor:'pointer'}} onClick={() => setEntryPage(() => 'signIn')}>Already have an account? Sign In</MaterialLink>
               </div>
             </div>
           </Container>

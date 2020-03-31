@@ -7,13 +7,20 @@ const db = require('./queries')
 const port = 3000
 const { config } = require('./config');
 
-app.use(bodyParser.json())
+app.use(bodyParser.json({limit:'50mb'}))
 app.use(
   bodyParser.urlencoded({
+    limit:'50mb',
     extended: true,
-  }),
-  cors()
+  })
 )
+app.use(cors())
+
+app.use((req, res, next) => {
+  res.header('Access-Control-Allow-Origin','*');
+  res.header('Access-Control-Allow-Headers', '*');
+  next();
+})
 
 app.get('/', (request, response) => {
   response.json({ info: 'Weather App API'})
@@ -21,7 +28,7 @@ app.get('/', (request, response) => {
 
 app.get('/currentWeather', (request, response) => {
   let { zip, country, city} = request.headers;
-  if(zip.split('').filter(char => char === ' ').length >=1 || typeof(parseInt(zip)) !== 'number' || zip <= 0){
+  if(zip.split('').filter(char => char === ' ').length >=1 || zip === '99999'){
     https.get(`https://api.openweathermap.org/data/2.5/weather?q=${city},${country}&appid=${config.openWeatherKey}&lang=en
     `, resp => {
       let data = '';
@@ -101,7 +108,7 @@ app.get('/airData', (request, response) => {
 
 app.get('/autocomplete', (request, response) => {
   let { query } = request.headers;
-  https.get(`https://autocomplete.geocoder.ls.hereapi.com/6.2/suggest.json?apiKey=${config.autoCompleteApiKey}&query=${query}&language=en&resultType=city`, resp => {
+  https.get(`https://autocomplete.geocoder.ls.hereapi.com/6.2/suggest.json?apiKey=${config.autoCompleteApiKey}&query=${query}&language=en&resultType=city&maxresults=20`, resp => {
     let data = '';
 
     resp.on('data', chunk => {
