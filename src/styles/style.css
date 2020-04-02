@@ -150,6 +150,11 @@ p {
   text-shadow: 0px 0px 3px #000, -1px -1px #000, 1px 1px #000;
   font-weight:900;
 }
+
+p.MuiFormHelperText-root {
+  text-shadow:none;
+}
+
 .clear-day{
   background-image: url('../assets/clear-day.gif')
 }

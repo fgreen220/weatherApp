@@ -28,18 +28,14 @@ export default function SignIn(props) {
   const classes = useStyles();
 
   const [usernameEntry, setUsernameEntry] = useState('');
-  const handleUsernameEntry = (event) => {
-    setUsernameEntry(() => event.target.value);
-  }
-
   const [passwordEntry, setPasswordEntry] = useState('');
-  const handlePasswordEntry = (event) => {
-    setPasswordEntry(() => event.target.value);
-  }
 
-  const handleFocus = (targetFocusId) => {
-    document.getElementById(targetFocusId).focus();
-  }
+
+  const [signupUsernameEntry, setSignupUsernameEntry] = useState('');
+  const [signupPasswordEntry, setSignupPasswordEntry] = useState('');
+
+  const [signupUsernameTooltipOpen, setSignupUsernameTooltipOpen] = useState(false);
+  const [signupPasswordTooltipOpen, setSignupPasswordTooltipOpen] = useState(false);
 
   const [entryPage, setEntryPage] = useState('signIn');
   useEffect(() => {
@@ -47,6 +43,19 @@ export default function SignIn(props) {
     document.getElementById('signUpUsername') ? document.getElementById('signUpUsername').focus() : null; 
   }, [entryPage])
 
+  const tooltipCloseHandler = () => {
+    setSignupUsernameTooltipOpen(() => false);
+    setSignupPasswordTooltipOpen(() => false);
+  }
+
+  const [usernameTaken, setUsernameTaken] = useState(false);
+
+  const checkUsername = async (usernameValue) => {
+    const usernameList = await props.signinUsernameRetriever();
+    usernameList.filter(user => user === usernameValue).length >= 1 ?
+    setUsernameTaken(() => true) :
+    null
+  }
 
   return (
     <Router>
@@ -62,6 +71,8 @@ export default function SignIn(props) {
                   e.preventDefault();
                   e.persist();
                   props.signInHandler(usernameEntry, passwordEntry);
+                  setUsernameEntry(() => '');
+                  setPasswordEntry(() => '');
                   }
                 }>
                   <TextField
@@ -69,7 +80,11 @@ export default function SignIn(props) {
                     margin="normal"
                     required
                     fullWidth
-                    onChange={() => handleUsernameEntry(event)}
+                    onChange={event => {
+                      event.persist();
+                      setUsernameEntry(() => event.target.value);
+                    }}
+                    value={usernameEntry}
                     label="Username"
                     name="username"
                     autoComplete="username"
@@ -85,7 +100,11 @@ export default function SignIn(props) {
                     label="Password"
                     type="password"
                     id="password"
-                    onChange={() => handlePasswordEntry(event)}
+                    onChange={event => {
+                      event.persist();
+                      setPasswordEntry(() => event.target.value);
+                    }}
+                    value={passwordEntry}
                     autoComplete="current-password"
                   />
                   <div style={{display:'flex', justifyContent:'space-between'}}>
@@ -117,15 +136,29 @@ export default function SignIn(props) {
         <Route path='/signup'>
           <h1 style={{backgroundColor:'#3f51b5', margin:0, padding:'2rem', color:'white'}}>Sign Up</h1>
           <Container style={{height:'80vh', display:'flex', alignItems:'center',
-          justifyContent:'center', maxWidth:'50%', minWidth:'400px'}} component="main" maxWidth={false}>
+          justifyContent:'center', maxWidth:'50%', minWidth:'400px'}} component="main" maxWidth={false} >
             <div className={classes.paper}>
-              <form className={classes.form} noValidate 
+              <form className={classes.form} noValidate
               onSubmit={(e) => {
                 e.preventDefault();
                 e.persist();
-                console.log(username, password)
-                props.signInHandler(username, password);
+                if(signupUsernameEntry !== '' && signupPasswordEntry !== '' && !usernameTaken) {
+                  console.log(signupUsernameEntry, signupPasswordEntry)
+                  props.signUpHandler(signupUsernameEntry, signupPasswordEntry);
+                  setSignupUsernameEntry(() => '');
+                  setSignupPasswordEntry(() => '');
                 }
+                if(signupUsernameEntry === '' && signupPasswordEntry === '') {
+                  setSignupUsernameTooltipOpen(() => true);
+                  setSignupPasswordTooltipOpen(() => true);
+                }
+                if(signupUsernameEntry === '' && signupPasswordEntry !== '') {
+                  setSignupUsernameTooltipOpen(() => true);
+                }
+                if(signupUsernameEntry !== '' && signupPasswordEntry === '') {
+                  setSignupPasswordTooltipOpen(() => true);
+                }
+              }
               }>
                 <TextField
                   variant="outlined"
@@ -134,9 +167,21 @@ export default function SignIn(props) {
                   fullWidth
                   id="signUpUsername"
                   label="Username"
+                  onChange={event => {
+                    event.persist();
+                    setSignupUsernameEntry(() => event.target.value);
+                  }}
+                  value={signupUsernameEntry}
+                  onFocus={() => usernameTaken ? setUsernameTaken(() => false) : null}
+                  onBlur={event => {
+                    event.persist();
+                    checkUsername(event.target.value);
+                  }}
                   name="username"
                   autoComplete="username"
                   tabIndex='0'
+                  error={signupUsernameTooltipOpen ? signupUsernameTooltipOpen : usernameTaken}
+                  helperText={signupUsernameTooltipOpen ? 'Please enter an username' : usernameTaken ? 'Username taken' : null}
                 />
                 <TextField
                   variant="outlined"
@@ -145,9 +190,17 @@ export default function SignIn(props) {
                   fullWidth
                   name="password"
                   label="Password"
+                  onChange={event => {
+                    event.persist();
+                    setSignupPasswordEntry(() => event.target.value);
+                  }}
+                  value={signupPasswordEntry}
+                  onFocus={signupPasswordTooltipOpen ? tooltipCloseHandler : null}
                   type="password"
                   id="password"
                   autoComplete="current-password"
+                  error={signupPasswordTooltipOpen}
+                  helperText={signupPasswordTooltipOpen ? 'Please enter a password' : null}
                 />
                 <Button
                   type="submit"

@@ -9,12 +9,20 @@ const pool = new Pool({
 })
 
 const getUsers = (request, response) => {
-  const { username, password } = request.headers;
+  const { username, password, authorizedrequest } = request.headers;
   console.log(username, password)
-  if (!username && !password) {
+  if(authorizedrequest === 'true') {
+    pool.query('SELECT username FROM users ORDER BY id ASC', (error, results) => {
+      if (error) {
+        throw error;
+      }
+      response.status(200).json(results.rows);
+    })
+  }
+  if (!username && !password && !authorizedrequest) {
     pool.query('SELECT * FROM users ORDER BY id ASC', (error, results) => {
       if (error) {
-        throw error
+        throw error;
       }
       response.status(200).json(results.rows)
     })
@@ -37,9 +45,9 @@ const getUsers = (request, response) => {
 }
 
 const createUser = (request, response) => {
-  const { username, password, cities } = request.body
+  const { username, password, state } = request.body
 
-  pool.query(`INSERT INTO users (username, password, cities) VALUES ($1, $2, $3, $4) RETURNING id`, [username, password, cities, state], (error, results) => {
+  pool.query(`INSERT INTO users (username, password, state) VALUES ($1, $2, $3) RETURNING id`, [username, password, state], (error, results) => {
     if (error) {
       throw error
     }

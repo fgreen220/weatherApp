@@ -1,7 +1,7 @@
 import React, { Component, Fragment } from "react";
 import ReactDOM from "react-dom";
 import 'babel-polyfill';
-import { SwipeableDrawer, IconButton } from '@material-ui/core';
+import { SwipeableDrawer, IconButton, Button } from '@material-ui/core';
 import { FormatListBulleted, AddCircleOutline } from '@material-ui/icons';
 import { countryCodes } from '../../countryDictionary';
 import '../../styles/style.css';
@@ -19,7 +19,18 @@ const initialState = {
   cities: [],
   citiesDisplayed: [],
   countryCode: [],
-  currentCity: undefined,
+  coordinates: [],
+  currentCity:'',
+  rainfall: [],
+  dailyForecast:[],
+  hourlyForecast:[],
+  selectedCurrentForecast: {},
+  selectedDailyForecast: {},
+  selectedHourlyForecast: {},
+  selectedTimezone: '',
+  selectedZip:'',
+  sunrise:[],
+  sunset:[],
   isFahrenheit: true,
   currentTemp: [],
   currentHours: '',
@@ -124,8 +135,10 @@ class Form extends Component {
         this.cityTileHandler = this.cityTileHandler.bind(this);
         this.darkSkyData = this.darkSkyData.bind(this);
         this.signInHandler = this.signInHandler.bind(this);
+        this.signUpHandler = this.signUpHandler.bind(this);
         this.testPoints = this.testPoints.bind(this);
         this.updateLoadedState = this.updateLoadedState.bind(this);
+        this.signinUsernameRetriever = this.signinUsernameRetriever.bind(this);
     }
 
     listenScrollEvent = e => {
@@ -1275,6 +1288,38 @@ class Form extends Component {
       })
     }
 
+  async signUpHandler (username, password) {
+    await fetch('http://localhost:3000/signup', {
+      method:'post',
+      headers: {
+        'Content-Type':'application/json',
+        'username': `${username}`,
+        'password': `${password}`
+      },
+      body: JSON.stringify({username, password, state:initialState})
+    })
+    .then(response => response.json())
+    .then(data => {
+      console.log(data);
+    })
+  }
+
+  async signinUsernameRetriever () {
+    let currentUsernameList;
+    await fetch('http://localhost:3000/users', {
+      method:'get',
+      headers: {
+        'Content-Type':'application/json',
+        'authorizedrequest': `true`
+      }
+    })
+    .then(response => response.json())
+    .then(data => {
+      currentUsernameList = data.map(user => user.username);
+    })
+    return currentUsernameList;
+  }
+
     async testPoints () {
       if(!this.state.isGuestUser && this.state.isLoggedIn){
         await fetch(`http://localhost:3000/users/${this.state.id}`, {
@@ -1330,6 +1375,10 @@ class Form extends Component {
       this.testPoints();
     }
 
+    signoutHandler = () => {
+      this.setState({...initialState})
+    }
+
     render() {
         const {isFahrenheit,
           currentHours,
@@ -1382,6 +1431,8 @@ class Form extends Component {
                 signInHandler={this.signInHandler}
                 guestUserLoginHandler={this.guestUserLoginHandler}
                 updateLoadedState={this.updateLoadedState}
+                signinUsernameRetriever={this.signinUsernameRetriever}
+                signUpHandler={this.signUpHandler}
                 />
               :
               cities.length >= 1 && !cityTileClicked && currentForecast === undefined && isLoggedIn?
@@ -1473,11 +1524,12 @@ class Form extends Component {
                   : null
                }
                { !cityTileClicked && isLoggedIn?
-                  <div style={{display:'grid', gridTemplateColumns:'1fr 1fr'}}>
-                    <div onClick={this.tempConverter} style={{fontFamily:'sans-serif', fontWeight:'600', margin:'1rem 0 0 2rem', width:'fit-content', cursor:'pointer'}}>
+                  <div style={{display:'grid', gridTemplateColumns:'1fr 1fr 1fr'}}>
+                    <div onClick={this.tempConverter} style={{fontFamily:'sans-serif', fontWeight:'600', margin:'0 0 0 2rem', alignSelf:'center', width:'fit-content', cursor:'pointer'}}>
                       <span style={{display:'inline'}}>°C</span><span> / </span><span>°F</span>
                     </div>
-                    <IconButton onClick={this.addCityButtonHandler}style={{display:'grid', justifySelf:'end', margin:'1rem 2rem 0 0', cursor:'pointer', color:'black', padding:0}}><AddCircleOutline /></IconButton>
+                    <Button style={{backgroundColor:'red', color:'white', width:'fit-content', margin:'1rem 0', justifySelf:'center', alignSelf:'center'}} onClick={this.signoutHandler}>Sign Out</Button>
+                    <IconButton onClick={this.addCityButtonHandler}style={{display:'grid', justifySelf:'end', margin:'0 2rem 0 0', alignSelf:'center', cursor:'pointer', color:'black', padding:0}}><AddCircleOutline /></IconButton>
                     {/* <button onClick={this.testPoints}>Test Points</button> */}
                   </div>
                 :
