@@ -1,5 +1,6 @@
 const { Pool } = require('pg')
 const { config } = require('./config');
+const bcrypt = require('bcrypt')
 const pool = new Pool({
   user: 'me',
   host: 'localhost',
@@ -10,7 +11,7 @@ const pool = new Pool({
 
 const getUsers = (request, response) => {
   const { username, password, authorizedrequest } = request.headers;
-  console.log(username, password)
+  // console.log(username, password)
   if(authorizedrequest === 'true') {
     pool.query('SELECT username FROM users ORDER BY id ASC', (error, results) => {
       if (error) {
@@ -27,31 +28,37 @@ const getUsers = (request, response) => {
       response.status(200).json(results.rows)
     })
   } else if (username && password) {
-    pool.query('SELECT * FROM users WHERE username = $1 AND password = $2', [username, password], (error, results) => {
-      if (error) {
-        throw error
+      pool.query('SELECT * FROM users WHERE username = $1', [username], (error, results) => {
+        if (error) {
+          throw error
+        }
+        // results.rowCount===1 ? console.log(results.rows[0].id): null;
+        results.rowCount===1 ?
+          // console.log(results.rows[0].username, results.rows[0].password)
+          // hashedPassword = results.rows[0].password;
+          // currentId = results.rows[0].id;
+          // currentState = results.rows[0].state;
+          bcrypt.compare(password, results.rows[0].password, function(err, result) {
+            result ?
+              response.status(200).json({ isLoggedIn: true, id: results.rows[0].id, state: results.rows[0].state })
+            :
+              response.status(200).json({ isLoggedIn: false })
+          })
+        :
+        response.status(200).json({ isLoggedIn: false })
+      })
       }
-      results.rowCount===1 ? console.log(results.rows[0].id): null;
-      if(results.rowCount===1 && results.rows[0].state === undefined) {
-        response.status(200).json({isLoggedIn: true, id:results.rows[0].id, state: results.rows[0].state});
-      } else if (results.rowCount===1 && results.rows[0].state !== undefined) {
-        response.status(200).json({isLoggedIn: true, id:results.rows[0].id, state: results.rows[0].state});
-      }
-      else {
-        response.status(200).json({isLoggedIn: false})
-      }
-    })
-  }
 }
 
 const createUser = (request, response) => {
   const { username, password, state } = request.body
-
-  pool.query(`INSERT INTO users (username, password, state) VALUES ($1, $2, $3) RETURNING id`, [username, password, state], (error, results) => {
-    if (error) {
-      throw error
-    }
-    response.status(201).json({response: `User added with ID: ${results.rows[0].id}`})
+  bcrypt.hash(password, 12, function(err, hash) {
+    pool.query(`INSERT INTO users (username, password, state) VALUES ($1, $2, $3) RETURNING id`, [username, hash, state], (error, results) => {
+      if (error) {
+        throw error
+      }
+      response.status(201).json({response: `User added with ID: ${results.rows[0].id}`})
+    })
   })
 }
 

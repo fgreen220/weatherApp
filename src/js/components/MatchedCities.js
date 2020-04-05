@@ -48,7 +48,10 @@ const MatchedCities = (props) => {
     }
     </div>
     :
-    <p style={{color:'black', textShadow:'none'}}>No results found</p>
+    props.matchedCities.length === 0  && props.cityInput !== '' ?
+    <p style={{color:'black', textShadow:'none', textAlign:'center'}}>No results found</p>
+    :
+    null
   );
 }
 

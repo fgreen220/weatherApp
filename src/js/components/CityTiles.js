@@ -1,5 +1,5 @@
 import React, { useState, Fragment } from 'react';
-
+import { BrowserRouter as Router, Link } from 'react-router-dom';
 
 const CityTiles = (props) => {
 
@@ -13,7 +13,7 @@ const CityTiles = (props) => {
     props.cities.map((city, index) => {
       // index === props.cities.length - 1 ? () => this.setState({rendered:cities}):null
       return (
-          <div id='cityTileWrapper' className={props.currentForecast.length === props.cities.length ?
+          <div className={props.currentForecast.length === props.cities.length ?
             `${props.currentForecast.filter(cast => cast[city])[0][city]['icon']}1`:
             'cloudy1'} style={{height:'5rem', backgroundSize:'100% 5rem', cursor:'pointer'}} id={`${city}`} key={city,index}>
             {/* {console.log(props.currentForecast.filter(cast => cast[city]))} */}
@@ -68,7 +68,7 @@ const CityTiles = (props) => {
                 <p style={{display:'grid',margin:'1rem 0 0 2rem',gridColumn:'1 / 2',gridRow: '1 / 2',alignSelf:'start',justifySelf:'start'}}>
                   {props.currentForecast[index] ? props.timezoneHandler(props.currentForecast[index][city]['time']*1000, 'tileTime', index) : null}
                 </p>
-                <h1 style={{display:'grid',margin:'0 0 0 2rem',alignSelf:'start',justifySelf:'start',gridColumn:'1 / 2',gridRow: '1 / 2'}}>
+                <h1 style={{whiteSpace:'nowrap', display:'grid',margin:'0 0 0 2rem',alignSelf:'start',justifySelf:'start',gridColumn:'1 / 2',gridRow: '1 / 2'}}>
                   {props.cities.filter((area) => area.split('*')[0] === city.split('*')[0]).length > 1 ? <div style={{display:'flex'}}>{`${city.split('*')[0]}`}<sup style={{fontSize:'medium'}}> {`${city.split('*')[2]}`}</sup></div> : city.split('*')[0]}
                 </h1>
               </div>
@@ -97,8 +97,7 @@ const CityTiles = (props) => {
                   <p style={{textShadow:'none'}} id='deleteCityTileText'>Delete</p>
                 </button>
               </div>
-              :
-              null
+              : null
             }
             </div>
           </div>

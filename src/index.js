@@ -1,4 +1,4 @@
-const Form = require('./js/components/Form');
+const App = require('./js/components/App');
 require.context("./assets/", true,/\.(png|jpe?g|gif|svg)$/i)
 
 

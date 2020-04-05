@@ -18,7 +18,11 @@ const CityInputSearchBar = (props) => {
                       <Search />
                   </InputAdornment>
                 )
-              }} style={{width:'100%'}} onChange={() => props.cityInputHandler(event)}/>
+              }} 
+              style={{width:'100%'}} onChange={() => {
+                props.cityInputHandler(event);
+              console.log(event.target.value);
+              }}/>
             </form>
             <Button style={{color:'white', marginLeft:'0.25rem'}} onClick={() => props.cancelButtonDrawerCloseHandler()}>Cancel</Button>
           </div>

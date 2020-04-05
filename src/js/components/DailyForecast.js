@@ -3,7 +3,7 @@ import React, { Fragment } from 'react';
 const DailyForecast = (props) => {
   return(
     <div style={{height:'100%', marginTop:'2vh'}}>
-      <div style={{gridRowGap:'3vh', height:'100%', display:'grid', gridTemplateColumns: 'repeat(3, 1fr)', gridTemplateRows: `repeat(${props.selectedDailyForecast[props.selection].length-1},1fr)`}}>
+      <div style={{height:'100%', display:'grid', gridTemplateColumns: 'repeat(3, 1fr)', gridTemplateRows: `repeat(${props.selectedDailyForecast[props.selection].length-1},1fr)`}}>
         {
         props.selectedDailyForecast[props.selection].map((forecast, index) => {
           if(index !== 0){
@@ -24,7 +24,6 @@ const DailyForecast = (props) => {
         })
         }
     </div>
-    <hr />
   </div>
   );
 }

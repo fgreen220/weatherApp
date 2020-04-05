@@ -5,6 +5,7 @@ import { Link as MaterialLink } from '@material-ui/core';
 import { makeStyles } from '@material-ui/core/styles';
 import Container from '@material-ui/core/Container';
 import { BrowserRouter as Router, Link, Route, Switch } from 'react-router-dom';
+import CityTiles from './CityTiles';
 
 const useStyles = makeStyles({
   paper: {
@@ -58,169 +59,194 @@ export default function SignIn(props) {
   }
 
   return (
+    !props.isLoggedIn ? 
     <Router>
       <Switch>
-      <Route exact path='/'>
+        <Route path='/citytiles'>
+          <p>fdaslkfjdsafdjksflkdsjf</p>
+          <CityTiles 
+            cities={props.cities}
+            currentForecast={props.currentForecast}
+            countryCode={props.countryCode}
+            cityTileHandler={props.cityTileHandler}
+            timezoneHandler={props.timezoneHandler}
+            tempInCelsius={props.tempInCelsius}
+            deleteCityTileHandler={props.deleteCityTileHandler}
+            setTilesScrollTop={props.setTilesScrollTop}
+            cityTileClicked={props.cityTileClicked}
+            isLoggedIn={props.isLoggedIn}
+          />
+        </Route>
           <Fragment>
-            <h1 style={{backgroundColor:'#3f51b5', margin:0, padding:'2rem', color:'white'}}>Sign In</h1>
-            <Container style={{height:'80vh', display:'flex', alignItems:'center',
-            justifyContent:'center', maxWidth:'50%', minWidth:'400px'}} component="main" maxWidth={false}>
-              <div className={classes.paper}>
-                <form className={classes.form} noValidate 
-                onSubmit={(e) => {
-                  e.preventDefault();
-                  e.persist();
-                  props.signInHandler(usernameEntry, passwordEntry);
-                  setUsernameEntry(() => '');
-                  setPasswordEntry(() => '');
-                  }
-                }>
-                  <TextField
-                    variant="outlined"
-                    margin="normal"
-                    required
-                    fullWidth
-                    onChange={event => {
-                      event.persist();
-                      setUsernameEntry(() => event.target.value);
-                    }}
-                    value={usernameEntry}
-                    label="Username"
-                    name="username"
-                    autoComplete="username"
-                    id='signInUsername'
-                    tabIndex='0'
-                  />
-                  <TextField
-                    variant="outlined"
-                    margin="normal"
-                    required
-                    fullWidth
-                    name="password"
-                    label="Password"
-                    type="password"
-                    id="password"
-                    onChange={event => {
-                      event.persist();
-                      setPasswordEntry(() => event.target.value);
-                    }}
-                    value={passwordEntry}
-                    autoComplete="current-password"
-                  />
-                  <div style={{display:'flex', justifyContent:'space-between'}}>
-                    <MaterialLink component={Link} to='/signup' style={{cursor:'pointer'}} onClick={() => setEntryPage(() => 'signUp')}>Sign Up</MaterialLink>
+          <Route exact path='/'>
+              <Fragment>
+                <h1 style={{backgroundColor:'#3f51b5', margin:0, padding:'2rem', color:'white'}}>Sign In</h1>
+                <Container style={{height:'80vh', display:'flex', alignItems:'center',
+                justifyContent:'center', maxWidth:'50%', minWidth:'400px'}} component="main" maxWidth={false}>
+                  <div className={classes.paper}>
+                    <form className={classes.form} noValidate 
+                    onSubmit={(e) => {
+                      e.preventDefault();
+                      e.persist();
+                      props.signInHandler(usernameEntry, passwordEntry);
+                      setUsernameEntry(() => '');
+                      setPasswordEntry(() => '');
+                      }
+                    }>
+                      <TextField
+                        variant="outlined"
+                        margin="normal"
+                        required
+                        fullWidth
+                        onChange={event => {
+                          event.persist();
+                          setUsernameEntry(() => event.target.value);
+                        }}
+                        value={usernameEntry}
+                        label="Username"
+                        name="username"
+                        autoComplete="username"
+                        id='signInUsername'
+                        tabIndex='0'
+                      />
+                      <TextField
+                        variant="outlined"
+                        margin="normal"
+                        required
+                        fullWidth
+                        name="password"
+                        label="Password"
+                        type="password"
+                        id="password"
+                        onChange={event => {
+                          event.persist();
+                          setPasswordEntry(() => event.target.value);
+                        }}
+                        value={passwordEntry}
+                        autoComplete="current-password"
+                      />
+                      <div style={{display:'flex', justifyContent:'space-between'}}>
+                        <MaterialLink component={Link} to='/signup' style={{cursor:'pointer'}} onClick={() => setEntryPage(() => 'signUp')}>Sign Up</MaterialLink>
 
-                    <MaterialLink style={{cursor:'pointer'}} onClick={() => {
-                      props.guestUserLoginHandler();
-                      // props.updateLoadedState();
-                    }}>
-                      Continue as Guest
-                    </MaterialLink>
+                        <MaterialLink
+                        style={{cursor:'pointer'}} 
+                        onClick={async() => {
+                          await props.guestUserLoginHandler();
+                          // props.updateLoadedState();
+                        }}
+                        >
+                          Continue as Guest
+                        </MaterialLink>
+                      </div>
+                      <Button
+                        type="submit"
+                        fullWidth
+                        variant="contained"
+                        color="primary"
+                        classes={{contained:classes.contained}}
+                        // style={{margin:'1rem 0 0 0'}}
+                      >
+                        Sign In
+                      </Button>
+                    </form>
                   </div>
-                  <Button
-                    type="submit"
-                    fullWidth
-                    variant="contained"
-                    color="primary"
-                    classes={{contained:classes.contained}}
-                    // style={{margin:'1rem 0 0 0'}}
-                  >
-                    Sign In
-                  </Button>
-                </form>
-              </div>
-            </Container>
+                </Container>
+                <a target='_blank' href='https://darksky.net/poweredby/' >
+                        <img style={{display:'flex', justifyContent:'center', width:'8vh', height:'4vh', }} 
+                        width={'16px'} height={'16px'} src='./assets/darkskyattribution.png' />
+                </a>
+              </Fragment>
+            </Route>
+
+            <Route path='/signup'>
+              <h1 style={{backgroundColor:'#3f51b5', margin:0, padding:'2rem', color:'white'}}>Sign Up</h1>
+              <Container style={{height:'80vh', display:'flex', alignItems:'center',
+              justifyContent:'center', maxWidth:'50%', minWidth:'400px'}} component="main" maxWidth={false} >
+                <div className={classes.paper}>
+                  <form className={classes.form} noValidate
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    e.persist();
+                    if(signupUsernameEntry !== '' && signupPasswordEntry !== '' && !usernameTaken) {
+                      console.log(signupUsernameEntry, signupPasswordEntry)
+                      props.signUpHandler(signupUsernameEntry, signupPasswordEntry);
+                      setSignupUsernameEntry(() => '');
+                      setSignupPasswordEntry(() => '');
+                    }
+                    if(signupUsernameEntry === '' && signupPasswordEntry === '') {
+                      setSignupUsernameTooltipOpen(() => true);
+                      setSignupPasswordTooltipOpen(() => true);
+                    }
+                    if(signupUsernameEntry === '' && signupPasswordEntry !== '') {
+                      setSignupUsernameTooltipOpen(() => true);
+                    }
+                    if(signupUsernameEntry !== '' && signupPasswordEntry === '') {
+                      setSignupPasswordTooltipOpen(() => true);
+                    }
+                  }
+                  }>
+                    <TextField
+                      variant="outlined"
+                      margin="normal"
+                      required
+                      fullWidth
+                      id="signUpUsername"
+                      label="Username"
+                      onChange={event => {
+                        event.persist();
+                        setSignupUsernameEntry(() => event.target.value);
+                      }}
+                      value={signupUsernameEntry}
+                      onFocus={() => usernameTaken ? setUsernameTaken(() => false) : null}
+                      onBlur={event => {
+                        event.persist();
+                        checkUsername(event.target.value);
+                      }}
+                      name="username"
+                      autoComplete="username"
+                      tabIndex='0'
+                      error={signupUsernameTooltipOpen ? signupUsernameTooltipOpen : usernameTaken}
+                      helperText={signupUsernameTooltipOpen ? 'Please enter an username' : usernameTaken ? 'Username taken' : null}
+                    />
+                    <TextField
+                      variant="outlined"
+                      margin="normal"
+                      required
+                      fullWidth
+                      name="password"
+                      label="Password"
+                      onChange={event => {
+                        event.persist();
+                        setSignupPasswordEntry(() => event.target.value);
+                      }}
+                      value={signupPasswordEntry}
+                      onFocus={signupPasswordTooltipOpen ? tooltipCloseHandler : null}
+                      type="password"
+                      id="password"
+                      autoComplete="current-password"
+                      error={signupPasswordTooltipOpen}
+                      helperText={signupPasswordTooltipOpen ? 'Please enter a password' : null}
+                    />
+                    <Button
+                      type="submit"
+                      fullWidth
+                      variant="contained"
+                      color="primary"
+                      classes={{contained:classes.contained}}
+                      // style={{margin:'1rem 0 0 0'}}
+                    >
+                      Sign Up
+                    </Button>
+                  </form>
+                  <div style={{display:'flex', justifyContent:'center'}}>
+                    <MaterialLink component={Link} to='/' style={{cursor:'pointer'}} onClick={() => setEntryPage(() => 'signIn')}>Already have an account? Sign In</MaterialLink>
+                  </div>
+                </div>
+              </Container>
+            </Route>
           </Fragment>
-        </Route>
-
-        <Route path='/signup'>
-          <h1 style={{backgroundColor:'#3f51b5', margin:0, padding:'2rem', color:'white'}}>Sign Up</h1>
-          <Container style={{height:'80vh', display:'flex', alignItems:'center',
-          justifyContent:'center', maxWidth:'50%', minWidth:'400px'}} component="main" maxWidth={false} >
-            <div className={classes.paper}>
-              <form className={classes.form} noValidate
-              onSubmit={(e) => {
-                e.preventDefault();
-                e.persist();
-                if(signupUsernameEntry !== '' && signupPasswordEntry !== '' && !usernameTaken) {
-                  console.log(signupUsernameEntry, signupPasswordEntry)
-                  props.signUpHandler(signupUsernameEntry, signupPasswordEntry);
-                  setSignupUsernameEntry(() => '');
-                  setSignupPasswordEntry(() => '');
-                }
-                if(signupUsernameEntry === '' && signupPasswordEntry === '') {
-                  setSignupUsernameTooltipOpen(() => true);
-                  setSignupPasswordTooltipOpen(() => true);
-                }
-                if(signupUsernameEntry === '' && signupPasswordEntry !== '') {
-                  setSignupUsernameTooltipOpen(() => true);
-                }
-                if(signupUsernameEntry !== '' && signupPasswordEntry === '') {
-                  setSignupPasswordTooltipOpen(() => true);
-                }
-              }
-              }>
-                <TextField
-                  variant="outlined"
-                  margin="normal"
-                  required
-                  fullWidth
-                  id="signUpUsername"
-                  label="Username"
-                  onChange={event => {
-                    event.persist();
-                    setSignupUsernameEntry(() => event.target.value);
-                  }}
-                  value={signupUsernameEntry}
-                  onFocus={() => usernameTaken ? setUsernameTaken(() => false) : null}
-                  onBlur={event => {
-                    event.persist();
-                    checkUsername(event.target.value);
-                  }}
-                  name="username"
-                  autoComplete="username"
-                  tabIndex='0'
-                  error={signupUsernameTooltipOpen ? signupUsernameTooltipOpen : usernameTaken}
-                  helperText={signupUsernameTooltipOpen ? 'Please enter an username' : usernameTaken ? 'Username taken' : null}
-                />
-                <TextField
-                  variant="outlined"
-                  margin="normal"
-                  required
-                  fullWidth
-                  name="password"
-                  label="Password"
-                  onChange={event => {
-                    event.persist();
-                    setSignupPasswordEntry(() => event.target.value);
-                  }}
-                  value={signupPasswordEntry}
-                  onFocus={signupPasswordTooltipOpen ? tooltipCloseHandler : null}
-                  type="password"
-                  id="password"
-                  autoComplete="current-password"
-                  error={signupPasswordTooltipOpen}
-                  helperText={signupPasswordTooltipOpen ? 'Please enter a password' : null}
-                />
-                <Button
-                  type="submit"
-                  fullWidth
-                  variant="contained"
-                  color="primary"
-                  classes={{contained:classes.contained}}
-                  // style={{margin:'1rem 0 0 0'}}
-                >
-                  Sign Up
-                </Button>
-              </form>
-              <div style={{display:'flex', justifyContent:'center'}}>
-                <MaterialLink component={Link} to='/' style={{cursor:'pointer'}} onClick={() => setEntryPage(() => 'signIn')}>Already have an account? Sign In</MaterialLink>
-              </div>
-            </div>
-          </Container>
-        </Route>
-
       </Switch>
     </Router>
+    : null
   );
 }
