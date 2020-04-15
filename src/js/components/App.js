@@ -190,8 +190,10 @@ class App extends Component {
       if(this.state.id && prevState.cities !== this.state.cities) {
         this.testPoints();
       }
-      if(localStorage.getItem('stateObject') && this.state.isGuestUser){
+      if(localStorage.getItem('stateObject') && this.state.isGuestUser && this.state.cities.length >= 1){
         localStorage.setItem('stateObject', JSON.stringify({...this.state, cityInputDrawerOpen:false, matchedCities:[], opacityPercentage:1, paddingBottomTitle:false, paddingBottomSize:'0vh', cityInput:''}));
+      } else if(localStorage.getItem('stateObject') && this.state.isGuestUser && this.state.cities.length === 0){
+        localStorage.setItem('stateObject', JSON.stringify({...initialState}));
       } else if(!localStorage.getItem('stateObject')) {
         localStorage.setItem('stateObject', JSON.stringify(initialState));
       }
@@ -1067,7 +1069,8 @@ class App extends Component {
     hamburgerButtonHandler = () => {
       this.setState({
         cityTileClicked: false,
-        opacityPercentage:1
+        opacityPercentage:1,
+        selection: ''
       })
     }
 
@@ -1320,13 +1323,24 @@ class App extends Component {
   }
 
     async testPoints () {
-      if(!this.state.isGuestUser && this.state.isLoggedIn){
+      if(!this.state.isGuestUser && this.state.isLoggedIn && this.state.cities.length >= 1){
         await fetch(`http://localhost:3000/users/${this.state.id}`, {
           method:'put',
           headers: {
             'Content-Type':'application/json'
           },
-          body: JSON.stringify({state:{...this.state, cityInputDrawerOpen:false, matchedCities:[], opacityPercentage:1, paddingBottomTitle:false, paddingBottomSize:'0vh', cityInput:''}})
+          body: JSON.stringify({state:{...this.state, cityInputDrawerOpen:false, matchedCities:[], opacityPercentage:1, paddingBottomTitle:false, paddingBottomSize:'0vh', cityInput:'' }})
+        })
+        .then(response => response.json())
+        .then(data => console.log(data.response))
+      }
+      if(!this.state.isGuestUser && this.state.isLoggedIn && this.state.cities.length === 0){
+        await fetch(`http://localhost:3000/users/${this.state.id}`, {
+          method:'put',
+          headers: {
+            'Content-Type':'application/json'
+          },
+          body: JSON.stringify({state:{...initialState}})
         })
         .then(response => response.json())
         .then(data => console.log(data.response))
@@ -1344,7 +1358,7 @@ class App extends Component {
     }
 
     cityInputDrawerCloseHandler = () => {
-      this.setState({cityInputDrawerOpen:false, matchedCities:[], sameCityId:-1});
+      this.setState({cityInputDrawerOpen:false, matchedCities:[], sameCityId:-1, cityInput:''});
     }
 
     sameCityTooltipOpenHandler = (sameCityIndex) => {
@@ -1455,7 +1469,7 @@ class App extends Component {
                     <Modal BackdropProps={{transitionduration:0}} open={cityTileClicked} disablePortal={true} onLoad={this.targetScrollElement.current ? this.targetScrollElement.current.addEventListener('scroll', this.listenScrollEvent): null}>
                       <div ref={this.targetScrollElement} className={currentForecast.length === cities.length && selection !== '' ?
                         `${currentForecast.filter(cast => cast[selection])[0][selection]['icon']}`:
-                         'cloudy'} style={{height:'100%', backgroundAttachment:'fixed', overflow:'scroll'}}>
+                         'cloudy'} style={{height:'100%', backgroundAttachment:'fixed', overflowY:'scroll'}}>
                         <div id='stickyDiv' style={{background:'inherit', minHeight:'10vh', position:'sticky', top:0, padding:'5vh 0 15vh 0', display:'grid', textAlign:'center', margin:0, zIndex:5}}>
                           <p style={{zIndex:5, display:'grid', justifyContent:'center', fontSize:'min(8vw, 40px)', whiteSpace:'nowrap', margin:0}}>
                             {selectedCity}
@@ -1521,8 +1535,7 @@ class App extends Component {
                 </div>
                     <div style={{position:'relative', bottom:0}}>
                       <hr />
-                      <div style={{display:'grid', gridTemplateColumns: '1fr 1fr 1fr'}}>
-                          <p style={{display:'grid', gridColumn:'2/3', justifySelf:'center'}}>...</p>
+                      <div style={{display:'grid', gridTemplateColumns: '1fr'}}>
                           <IconButton onClick={this.hamburgerButtonHandler} style={{color:'white', padding:0, display:'grid', gridColumn:'3/4', justifySelf:'end', marginRight:'2rem', cursor:'pointer'}}>
                             <FormatListBulleted />
                           </IconButton>

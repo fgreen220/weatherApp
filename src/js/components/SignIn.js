@@ -63,7 +63,6 @@ export default function SignIn(props) {
     <Router>
       <Switch>
         <Route path='/citytiles'>
-          <p>fdaslkfjdsafdjksflkdsjf</p>
           <CityTiles 
             cities={props.cities}
             currentForecast={props.currentForecast}
@@ -79,7 +78,7 @@ export default function SignIn(props) {
         </Route>
           <Fragment>
           <Route exact path='/'>
-              <Fragment>
+              <div id='signinPage'>
                 <h1 style={{backgroundColor:'#3f51b5', margin:0, padding:'2rem', color:'white'}}>Sign In</h1>
                 <Container style={{height:'80vh', display:'flex', alignItems:'center',
                 justifyContent:'center', maxWidth:'50%', minWidth:'400px'}} component="main" maxWidth={false}>
@@ -151,98 +150,100 @@ export default function SignIn(props) {
                     </form>
                   </div>
                 </Container>
-                <a target='_blank' href='https://darksky.net/poweredby/' >
+                <a id='darksky-link' target='_blank' href='https://darksky.net/poweredby/' >
                         <img style={{display:'flex', justifyContent:'center', width:'8vh', height:'4vh', }} 
                         width={'16px'} height={'16px'} src='./assets/darkskyattribution.png' />
                 </a>
-              </Fragment>
+              </div>
             </Route>
 
             <Route path='/signup'>
-              <h1 style={{backgroundColor:'#3f51b5', margin:0, padding:'2rem', color:'white'}}>Sign Up</h1>
-              <Container style={{height:'80vh', display:'flex', alignItems:'center',
-              justifyContent:'center', maxWidth:'50%', minWidth:'400px'}} component="main" maxWidth={false} >
-                <div className={classes.paper}>
-                  <form className={classes.form} noValidate
-                  onSubmit={(e) => {
-                    e.preventDefault();
-                    e.persist();
-                    if(signupUsernameEntry !== '' && signupPasswordEntry !== '' && !usernameTaken) {
-                      console.log(signupUsernameEntry, signupPasswordEntry)
-                      props.signUpHandler(signupUsernameEntry, signupPasswordEntry);
-                      setSignupUsernameEntry(() => '');
-                      setSignupPasswordEntry(() => '');
+              <div id='signupPage'>
+                <h1 style={{backgroundColor:'#3f51b5', margin:0, padding:'2rem', color:'white'}}>Sign Up</h1>
+                <Container style={{height:'80vh', display:'flex', alignItems:'center',
+                justifyContent:'center', maxWidth:'50%', minWidth:'400px'}} component="main" maxWidth={false} >
+                  <div className={classes.paper}>
+                    <form className={classes.form} noValidate
+                    onSubmit={(e) => {
+                      e.preventDefault();
+                      e.persist();
+                      if(signupUsernameEntry !== '' && signupPasswordEntry !== '' && !usernameTaken) {
+                        console.log(signupUsernameEntry, signupPasswordEntry)
+                        props.signUpHandler(signupUsernameEntry, signupPasswordEntry);
+                        setSignupUsernameEntry(() => '');
+                        setSignupPasswordEntry(() => '');
+                      }
+                      if(signupUsernameEntry === '' && signupPasswordEntry === '') {
+                        setSignupUsernameTooltipOpen(() => true);
+                        setSignupPasswordTooltipOpen(() => true);
+                      }
+                      if(signupUsernameEntry === '' && signupPasswordEntry !== '') {
+                        setSignupUsernameTooltipOpen(() => true);
+                      }
+                      if(signupUsernameEntry !== '' && signupPasswordEntry === '') {
+                        setSignupPasswordTooltipOpen(() => true);
+                      }
                     }
-                    if(signupUsernameEntry === '' && signupPasswordEntry === '') {
-                      setSignupUsernameTooltipOpen(() => true);
-                      setSignupPasswordTooltipOpen(() => true);
-                    }
-                    if(signupUsernameEntry === '' && signupPasswordEntry !== '') {
-                      setSignupUsernameTooltipOpen(() => true);
-                    }
-                    if(signupUsernameEntry !== '' && signupPasswordEntry === '') {
-                      setSignupPasswordTooltipOpen(() => true);
-                    }
-                  }
-                  }>
-                    <TextField
-                      variant="outlined"
-                      margin="normal"
-                      required
-                      fullWidth
-                      id="signUpUsername"
-                      label="Username"
-                      onChange={event => {
-                        event.persist();
-                        setSignupUsernameEntry(() => event.target.value);
-                      }}
-                      value={signupUsernameEntry}
-                      onFocus={() => usernameTaken ? setUsernameTaken(() => false) : null}
-                      onBlur={event => {
-                        event.persist();
-                        checkUsername(event.target.value);
-                      }}
-                      name="username"
-                      autoComplete="username"
-                      tabIndex='0'
-                      error={signupUsernameTooltipOpen ? signupUsernameTooltipOpen : usernameTaken}
-                      helperText={signupUsernameTooltipOpen ? 'Please enter an username' : usernameTaken ? 'Username taken' : null}
-                    />
-                    <TextField
-                      variant="outlined"
-                      margin="normal"
-                      required
-                      fullWidth
-                      name="password"
-                      label="Password"
-                      onChange={event => {
-                        event.persist();
-                        setSignupPasswordEntry(() => event.target.value);
-                      }}
-                      value={signupPasswordEntry}
-                      onFocus={signupPasswordTooltipOpen ? tooltipCloseHandler : null}
-                      type="password"
-                      id="password"
-                      autoComplete="current-password"
-                      error={signupPasswordTooltipOpen}
-                      helperText={signupPasswordTooltipOpen ? 'Please enter a password' : null}
-                    />
-                    <Button
-                      type="submit"
-                      fullWidth
-                      variant="contained"
-                      color="primary"
-                      classes={{contained:classes.contained}}
-                      // style={{margin:'1rem 0 0 0'}}
-                    >
-                      Sign Up
-                    </Button>
-                  </form>
-                  <div style={{display:'flex', justifyContent:'center'}}>
-                    <MaterialLink component={Link} to='/' style={{cursor:'pointer'}} onClick={() => setEntryPage(() => 'signIn')}>Already have an account? Sign In</MaterialLink>
+                    }>
+                      <TextField
+                        variant="outlined"
+                        margin="normal"
+                        required
+                        fullWidth
+                        id="signUpUsername"
+                        label="Username"
+                        onChange={event => {
+                          event.persist();
+                          setSignupUsernameEntry(() => event.target.value);
+                        }}
+                        value={signupUsernameEntry}
+                        onFocus={() => usernameTaken ? setUsernameTaken(() => false) : null}
+                        onBlur={event => {
+                          event.persist();
+                          checkUsername(event.target.value);
+                        }}
+                        name="username"
+                        autoComplete="username"
+                        tabIndex='0'
+                        error={signupUsernameTooltipOpen ? signupUsernameTooltipOpen : usernameTaken}
+                        helperText={signupUsernameTooltipOpen ? 'Please enter an username' : usernameTaken ? 'Username taken' : null}
+                      />
+                      <TextField
+                        variant="outlined"
+                        margin="normal"
+                        required
+                        fullWidth
+                        name="password"
+                        label="Password"
+                        onChange={event => {
+                          event.persist();
+                          setSignupPasswordEntry(() => event.target.value);
+                        }}
+                        value={signupPasswordEntry}
+                        onFocus={signupPasswordTooltipOpen ? tooltipCloseHandler : null}
+                        type="password"
+                        id="password"
+                        autoComplete="current-password"
+                        error={signupPasswordTooltipOpen}
+                        helperText={signupPasswordTooltipOpen ? 'Please enter a password' : null}
+                      />
+                      <Button
+                        type="submit"
+                        fullWidth
+                        variant="contained"
+                        color="primary"
+                        classes={{contained:classes.contained}}
+                        // style={{margin:'1rem 0 0 0'}}
+                      >
+                        Sign Up
+                      </Button>
+                    </form>
+                    <div style={{display:'flex', justifyContent:'center'}}>
+                      <MaterialLink component={Link} to='/' style={{cursor:'pointer'}} onClick={() => setEntryPage(() => 'signIn')}>Already have an account? Sign In</MaterialLink>
+                    </div>
                   </div>
-                </div>
-              </Container>
+                </Container>
+              </div>
             </Route>
           </Fragment>
       </Switch>
