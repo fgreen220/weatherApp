@@ -74,7 +74,8 @@ const initialState = {
   tempInCelsius:false,
   cityFailedSearch: false,
   paddingBottomSize:'0vh',
-  selection:''
+  selection:'',
+  signupSuccessTooltipOpen:false
 };
 
 class App extends Component {
@@ -130,7 +131,8 @@ class App extends Component {
             tempInCelsius:false,
             cityFailedSearch: false,
             paddingBottomSize:'0vh',
-            selection: ''
+            selection: '',
+            signupSuccessTooltipOpen:false
         };
 
         this.targetScrollElement = React.createRef();
@@ -1258,7 +1260,7 @@ class App extends Component {
     }
 
     async signInHandler (username, password) {
-      console.log(username, password)
+      // console.log(username, password)
       await fetch('http://localhost:3000/login', {
         method:'get',
         headers: {
@@ -1303,6 +1305,12 @@ class App extends Component {
     .then(response => response.json())
     .then(data => {
       console.log(data);
+      if(data.response) {
+        this.setState({signupSuccessTooltipOpen:true});
+        setTimeout(() => {
+          this.setState({signupSuccessTooltipOpen:false});
+        }, 3000);
+      }
     })
   }
 
@@ -1436,7 +1444,7 @@ class App extends Component {
           selectedZip,
           cityFailedSearch,
           cityInput,
-          paddingBottomSize
+          signupSuccessTooltipOpen
          } = this.state;
 
         return (
@@ -1448,6 +1456,7 @@ class App extends Component {
                 updateLoadedState={this.updateLoadedState}
                 signinUsernameRetriever={this.signinUsernameRetriever}
                 signUpHandler={this.signUpHandler}
+                signupSuccessTooltipOpen={signupSuccessTooltipOpen}
                 />
               :
               cities.length >= 1 && !cityTileClicked && currentForecast === undefined && isLoggedIn?

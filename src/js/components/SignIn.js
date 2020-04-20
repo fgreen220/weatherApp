@@ -1,7 +1,7 @@
 import React, { Fragment, useState, useEffect } from 'react';
 import Button from '@material-ui/core/Button';
 import TextField from '@material-ui/core/TextField';
-import { Link as MaterialLink } from '@material-ui/core';
+import { Link as MaterialLink, Tooltip } from '@material-ui/core';
 import { makeStyles } from '@material-ui/core/styles';
 import Container from '@material-ui/core/Container';
 import { BrowserRouter as Router, Link, Route, Switch } from 'react-router-dom';
@@ -167,8 +167,8 @@ export default function SignIn(props) {
                     onSubmit={(e) => {
                       e.preventDefault();
                       e.persist();
-                      if(signupUsernameEntry !== '' && signupPasswordEntry !== '' && !usernameTaken) {
-                        console.log(signupUsernameEntry, signupPasswordEntry)
+                      if(signupUsernameEntry.replace(/\s/g,'') !== '' && signupPasswordEntry !== '' && !usernameTaken) {
+                        // console.log(signupUsernameEntry, signupPasswordEntry)
                         props.signUpHandler(signupUsernameEntry, signupPasswordEntry);
                         setSignupUsernameEntry(() => '');
                         setSignupPasswordEntry(() => '');
@@ -227,16 +227,18 @@ export default function SignIn(props) {
                         error={signupPasswordTooltipOpen}
                         helperText={signupPasswordTooltipOpen ? 'Please enter a password' : null}
                       />
-                      <Button
-                        type="submit"
-                        fullWidth
-                        variant="contained"
-                        color="primary"
-                        classes={{contained:classes.contained}}
-                        // style={{margin:'1rem 0 0 0'}}
-                      >
-                        Sign Up
-                      </Button>
+                      <Tooltip title='Sign up successful' open={props.signupSuccessTooltipOpen} onOpen={() => null} onClose={() => null}>
+                        <Button
+                          type="submit"
+                          fullWidth
+                          variant="contained"
+                          color="primary"
+                          classes={{contained:classes.contained}}
+                          // style={{margin:'1rem 0 0 0'}}
+                        >
+                          Sign Up
+                        </Button>
+                      </Tooltip>
                     </form>
                     <div style={{display:'flex', justifyContent:'center'}}>
                       <MaterialLink component={Link} to='/' style={{cursor:'pointer'}} onClick={() => setEntryPage(() => 'signIn')}>Already have an account? Sign In</MaterialLink>

@@ -28,7 +28,7 @@ app.get('/', (request, response) => {
 
 app.get('/currentWeather', (request, response) => {
   let { zip, country, city} = request.headers;
-  if(zip.split('').filter(char => char === ' ').length >=1 || zip === '99999'){
+  if(zip.split('').filter(char => char === ' ').length >=1 || zip === '99999' || zip.includes('-')){
     https.get(`https://api.openweathermap.org/data/2.5/weather?q=${city},${country}&appid=${config.openWeatherKey}&lang=en
     `, resp => {
       let data = '';

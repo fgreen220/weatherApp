@@ -37,7 +37,7 @@ const HourlyForecast = (props) => {
                 <p style={{display:'grid', gridRow:'1', fontSize:'min(4vw, 20px)', justifySelf:'center', whiteSpace:'nowrap'}}>
                   {props.timezoneHandler(forecast.time*1000, 'hourlyForecast', props.cities.indexOf(props.selection))}
                 </p>
-                <img src={`${iconSelection}`} style={{display:'grid', gridRow:'2', justifySelf:'center'}}/>
+                <img src={`${iconSelection}`} style={{display:'grid', gridRow:'2', justifySelf:'center', height:'64px', width:'64px'}}/>
                 <p style={{display:'grid', gridRow:'3', fontSize:'min(4vw, 20px)', justifySelf:'center'}}>
                   {`${!props.tempInCelsius ? Math.round(forecast.temperature) :
                     Math.round((forecast.temperature-32)*(5/9))}°`}
