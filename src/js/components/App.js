@@ -286,7 +286,7 @@ class App extends Component {
       let countryFinal = countryCodes.filter(code => {
         return code[country];
       })[0][country];
-      await fetch(`http://localhost:5000/currentWeather`, {
+      await fetch(`https://sheltered-citadel-75989.herokuapp.com/currentWeather`, {
           method: 'get',
           headers: {
               'Content-Type': 'application/json',
@@ -360,7 +360,7 @@ class App extends Component {
     async darkSkyData (city, country, latitude, longitude, zip='99999') {
       console.log(latitude, longitude); 
       
-      await fetch(`http://localhost:5000/darkSky`, {
+      await fetch(`https://sheltered-citadel-75989.herokuapp.com/darkSky`, {
         method: 'get',
         headers: {
           'Content-Type': 'application/json',
@@ -1027,7 +1027,7 @@ class App extends Component {
     }
 
     async cityInputAutocomplete (query) {
-      await fetch('http://localhost:5000/autocomplete', {
+      await fetch('https://sheltered-citadel-75989.herokuapp.com//autocomplete', {
         method: 'get',
         headers: {
           'Content-Type': 'application/json',
@@ -1264,7 +1264,7 @@ class App extends Component {
 
     async signInHandler (username, password) {
       // console.log(username, password)
-      await fetch('http://localhost:5000/login', {
+      await fetch('https://sheltered-citadel-75989.herokuapp.com/login', {
         method:'get',
         headers: {
           'Content-Type':'application/json',
@@ -1297,7 +1297,7 @@ class App extends Component {
     }
 
   async signUpHandler (username, password) {
-    await fetch('http://localhost:5000/signup', {
+    await fetch('https://sheltered-citadel-75989.herokuapp.com/signup', {
       method:'post',
       headers: {
         'Content-Type':'application/json',
@@ -1321,7 +1321,7 @@ class App extends Component {
 
   async signinUsernameRetriever () {
     let currentUsernameList;
-    await fetch('http://localhost:5000/users', {
+    await fetch('https://sheltered-citadel-75989.herokuapp.com/users', {
       method:'get',
       headers: {
         'Content-Type':'application/json',
@@ -1338,7 +1338,7 @@ class App extends Component {
 
     async testPoints () {
       if(!this.state.isGuestUser && this.state.isLoggedIn && this.state.cities.length >= 1){
-        await fetch(`http://localhost:5000/users/${this.state.id}`, {
+        await fetch(`https://sheltered-citadel-75989.herokuapp.com/users/${this.state.id}`, {
           method:'put',
           headers: {
             'Content-Type':'application/json',
@@ -1350,7 +1350,7 @@ class App extends Component {
         .then(data => console.log(data.response))
       }
       if(!this.state.isGuestUser && this.state.isLoggedIn && this.state.cities.length === 0){
-        await fetch(`http://localhost:5000/users/${this.state.id}`, {
+        await fetch(`https://sheltered-citadel-75989.herokuapp.com/users/${this.state.id}`, {
           method:'put',
           headers: {
             'Content-Type':'application/json',
