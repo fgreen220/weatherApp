@@ -286,7 +286,7 @@ class App extends Component {
       let countryFinal = countryCodes.filter(code => {
         return code[country];
       })[0][country];
-      await fetch(`http://localhost:3000/currentWeather`, {
+      await fetch(`http://localhost:5000/currentWeather`, {
           method: 'get',
           headers: {
               'Content-Type': 'application/json',
@@ -359,7 +359,7 @@ class App extends Component {
     async darkSkyData (city, country, latitude, longitude, zip='99999') {
       console.log(latitude, longitude); 
       
-      await fetch(`http://localhost:3000/darkSky`, {
+      await fetch(`http://localhost:5000/darkSky`, {
         method: 'get',
         headers: {
           'Content-Type': 'application/json',
@@ -1025,7 +1025,7 @@ class App extends Component {
     }
 
     async cityInputAutocomplete (query) {
-      await fetch('http://localhost:3000/autocomplete', {
+      await fetch('http://localhost:5000/autocomplete', {
         method: 'get',
         headers: {
           'Content-Type': 'application/json',
@@ -1261,7 +1261,7 @@ class App extends Component {
 
     async signInHandler (username, password) {
       // console.log(username, password)
-      await fetch('http://localhost:3000/login', {
+      await fetch('http://localhost:5000/login', {
         method:'get',
         headers: {
           'Content-Type':'application/json',
@@ -1293,7 +1293,7 @@ class App extends Component {
     }
 
   async signUpHandler (username, password) {
-    await fetch('http://localhost:3000/signup', {
+    await fetch('http://localhost:5000/signup', {
       method:'post',
       headers: {
         'Content-Type':'application/json',
@@ -1316,7 +1316,7 @@ class App extends Component {
 
   async signinUsernameRetriever () {
     let currentUsernameList;
-    await fetch('http://localhost:3000/users', {
+    await fetch('http://localhost:5000/users', {
       method:'get',
       headers: {
         'Content-Type':'application/json',
@@ -1332,7 +1332,7 @@ class App extends Component {
 
     async testPoints () {
       if(!this.state.isGuestUser && this.state.isLoggedIn && this.state.cities.length >= 1){
-        await fetch(`http://localhost:3000/users/${this.state.id}`, {
+        await fetch(`http://localhost:5000/users/${this.state.id}`, {
           method:'put',
           headers: {
             'Content-Type':'application/json'
@@ -1343,7 +1343,7 @@ class App extends Component {
         .then(data => console.log(data.response))
       }
       if(!this.state.isGuestUser && this.state.isLoggedIn && this.state.cities.length === 0){
-        await fetch(`http://localhost:3000/users/${this.state.id}`, {
+        await fetch(`http://localhost:5000/users/${this.state.id}`, {
           method:'put',
           headers: {
             'Content-Type':'application/json'
