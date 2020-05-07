@@ -290,6 +290,7 @@ class App extends Component {
           method: 'get',
           headers: {
               'Content-Type': 'application/json',
+              'Accept': 'application/json',
               'zip': `${zip}`,
               'city': `${city}`,
               'country': `${countryFinal}`
@@ -363,6 +364,7 @@ class App extends Component {
         method: 'get',
         headers: {
           'Content-Type': 'application/json',
+          'Accept': 'application/json',
           'latitude': `${latitude}`,
           'longitude': `${longitude}`
         }
@@ -1029,6 +1031,7 @@ class App extends Component {
         method: 'get',
         headers: {
           'Content-Type': 'application/json',
+          'Accept': 'application/json',
           'query': `${query}`
         }
       })
@@ -1265,6 +1268,7 @@ class App extends Component {
         method:'get',
         headers: {
           'Content-Type':'application/json',
+          'Accept': 'application/json',
           'username': `${username}`,
           'password': `${password}`
         }
@@ -1297,6 +1301,7 @@ class App extends Component {
       method:'post',
       headers: {
         'Content-Type':'application/json',
+        'Accept': 'application/json',
         'username': `${username}`,
         'password': `${password}`
       },
@@ -1320,6 +1325,7 @@ class App extends Component {
       method:'get',
       headers: {
         'Content-Type':'application/json',
+        'Accept': 'application/json',
         'authorizedrequest': `true`
       }
     })
@@ -1335,7 +1341,8 @@ class App extends Component {
         await fetch(`http://localhost:5000/users/${this.state.id}`, {
           method:'put',
           headers: {
-            'Content-Type':'application/json'
+            'Content-Type':'application/json',
+            'Accept': 'application/json',
           },
           body: JSON.stringify({state:{...this.state, cityInputDrawerOpen:false, matchedCities:[], opacityPercentage:1, paddingBottomTitle:false, paddingBottomSize:'0vh', cityInput:'' }})
         })
@@ -1346,7 +1353,8 @@ class App extends Component {
         await fetch(`http://localhost:5000/users/${this.state.id}`, {
           method:'put',
           headers: {
-            'Content-Type':'application/json'
+            'Content-Type':'application/json',
+            'Accept': 'application/json',
           },
           body: JSON.stringify({state:{...initialState}})
         })
