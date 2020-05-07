@@ -4,7 +4,10 @@ const bodyParser = require('body-parser')
 const https = require('https')
 const app = express()
 const db = require('./queries')
-const port = 3000
+const port = process.env.PORT;
+if (port == null || port == "") {
+  port = 5001;
+}
 const { config } = require('./config');
 
 app.use(bodyParser.json({limit:'50mb'}))
