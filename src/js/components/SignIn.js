@@ -4,7 +4,7 @@ import TextField from '@material-ui/core/TextField';
 import { Link as MaterialLink, Tooltip } from '@material-ui/core';
 import { makeStyles } from '@material-ui/core/styles';
 import Container from '@material-ui/core/Container';
-import { BrowserRouter as Router, Link, Route, Switch } from 'react-router-dom';
+import { BrowserRouter as Router, Link, Route, Switch, Redirect } from 'react-router-dom';
 import CityTiles from './CityTiles';
 
 const useStyles = makeStyles({
@@ -61,6 +61,17 @@ export default function SignIn(props) {
   return (
     !props.isLoggedIn ? 
     <Router>
+      {/* <nav>
+        <ul>
+          <li>
+            <Link to="/signin">Sign In</Link>
+          </li>
+          <li>
+            <Link to="/signup">Sign Up</Link>
+          </li>
+        </ul>
+      </nav> */}
+      {!props.isLoggedIn ? <Redirect to="/signin" /> : null}
       <Switch>
         <Route path='/citytiles'>
           <CityTiles 
@@ -77,7 +88,7 @@ export default function SignIn(props) {
           />
         </Route>
           <Fragment>
-          <Route exact path='/'>
+          <Route path='/signin'>
               <div id='signinPage'>
                 <h1 style={{backgroundColor:'#3f51b5', margin:0, padding:'2rem', color:'white'}}>Sign In</h1>
                 <Container style={{height:'80vh', display:'flex', alignItems:'center',
@@ -241,7 +252,7 @@ export default function SignIn(props) {
                       </Tooltip>
                     </form>
                     <div style={{display:'flex', justifyContent:'center'}}>
-                      <MaterialLink component={Link} to='/' style={{cursor:'pointer'}} onClick={() => setEntryPage(() => 'signIn')}>Already have an account? Sign In</MaterialLink>
+                      <MaterialLink component={Link} to='/signin' style={{cursor:'pointer'}} onClick={() => setEntryPage(() => 'signIn')}>Already have an account? Sign In</MaterialLink>
                     </div>
                   </div>
                 </Container>
@@ -250,6 +261,83 @@ export default function SignIn(props) {
           </Fragment>
       </Switch>
     </Router>
-    : null
+  //   <div id='signinPage'>
+  //   <h1 style={{backgroundColor:'#3f51b5', margin:0, padding:'2rem', color:'white'}}>Sign In</h1>
+  //   <Container style={{height:'80vh', display:'flex', alignItems:'center',
+  //   justifyContent:'center', maxWidth:'50%', minWidth:'400px'}} component="main" maxWidth={false}>
+  //     <div className={classes.paper}>
+  //       <form className={classes.form} noValidate 
+  //       onSubmit={(e) => {
+  //         e.preventDefault();
+  //         e.persist();
+  //         props.signInHandler(usernameEntry, passwordEntry);
+  //         setUsernameEntry(() => '');
+  //         setPasswordEntry(() => '');
+  //         }
+  //       }>
+  //         <TextField
+  //           variant="outlined"
+  //           margin="normal"
+  //           required
+  //           fullWidth
+  //           onChange={event => {
+  //             event.persist();
+  //             setUsernameEntry(() => event.target.value);
+  //           }}
+  //           value={usernameEntry}
+  //           label="Username"
+  //           name="username"
+  //           autoComplete="username"
+  //           id='signInUsername'
+  //           tabIndex='0'
+  //         />
+  //         <TextField
+  //           variant="outlined"
+  //           margin="normal"
+  //           required
+  //           fullWidth
+  //           name="password"
+  //           label="Password"
+  //           type="password"
+  //           id="password"
+  //           onChange={event => {
+  //             event.persist();
+  //             setPasswordEntry(() => event.target.value);
+  //           }}
+  //           value={passwordEntry}
+  //           autoComplete="current-password"
+  //         />
+  //         <div style={{display:'flex', justifyContent:'space-between'}}>
+  //           {/* <MaterialLink component={Link} to='/signup' style={{cursor:'pointer'}} onClick={() => setEntryPage(() => 'signUp')}>Sign Up</MaterialLink> */}
+
+  //           <MaterialLink
+  //           style={{cursor:'pointer'}} 
+  //           onClick={async() => {
+  //             await props.guestUserLoginHandler();
+  //             // props.updateLoadedState();
+  //           }}
+  //           >
+  //             Continue as Guest
+  //           </MaterialLink>
+  //         </div>
+  //         <Button
+  //           type="submit"
+  //           fullWidth
+  //           variant="contained"
+  //           color="primary"
+  //           classes={{contained:classes.contained}}
+  //           // style={{margin:'1rem 0 0 0'}}
+  //         >
+  //           Sign In
+  //         </Button>
+  //       </form>
+  //     </div>
+  //   </Container>
+  //   <a id='darksky-link' target='_blank' href='https://darksky.net/poweredby/' >
+  //           <img style={{display:'flex', justifyContent:'center', width:'8vh', height:'4vh', }} 
+  //           width={'16px'} height={'16px'} src='../assets/darkskyattribution.png' />
+  //   </a>
+  // </div>
+    : <h1>HELLO REACT</h1>
   );
 }

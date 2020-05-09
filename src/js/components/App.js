@@ -1,6 +1,6 @@
 import React, { Component, Fragment } from "react";
-import ReactDOM from "react-dom";
 import 'babel-polyfill';
+import ReactDOM from 'react-dom';
 import { SwipeableDrawer, IconButton, Button, Modal } from '@material-ui/core';
 import { FormatListBulleted, AddCircleOutline } from '@material-ui/icons';
 import { countryCodes } from '../../countryDictionary';
@@ -12,7 +12,6 @@ import DailyForecast from './DailyForecast';
 import MatchedCities from './MatchedCities';
 import CityInputSearchBar from './CityInputSearchBar';
 import DetailedWeatherInformation from './DetailedWeatherInformation';
-import { disableBodyScroll, enableBodyScroll, clearAllBodyScrollLocks } from 'body-scroll-lock';
 
 
 const initialState = {
@@ -1027,7 +1026,7 @@ class App extends Component {
     }
 
     async cityInputAutocomplete (query) {
-      await fetch('https://sheltered-citadel-75989.herokuapp.com//autocomplete', {
+      await fetch('https://sheltered-citadel-75989.herokuapp.com/autocomplete', {
         method: 'get',
         headers: {
           'Content-Type': 'application/json',
@@ -1458,16 +1457,20 @@ class App extends Component {
         return (
           <Fragment>
               { !isLoggedIn ?
-                <SignIn 
-                signInHandler={this.signInHandler}
-                guestUserLoginHandler={this.guestUserLoginHandler}
-                updateLoadedState={this.updateLoadedState}
-                signinUsernameRetriever={this.signinUsernameRetriever}
-                signUpHandler={this.signUpHandler}
-                signupSuccessTooltipOpen={signupSuccessTooltipOpen}
-                />
+                <Fragment>
+                  <SignIn 
+                  signInHandler={this.signInHandler}
+                  guestUserLoginHandler={this.guestUserLoginHandler}
+                  updateLoadedState={this.updateLoadedState}
+                  signinUsernameRetriever={this.signinUsernameRetriever}
+                  signUpHandler={this.signUpHandler}
+                  signupSuccessTooltipOpen={signupSuccessTooltipOpen}
+                  isLoggedIn={isLoggedIn}
+                  />
+                </Fragment>
               :
-              cities.length >= 1 && !cityTileClicked && currentForecast === undefined && isLoggedIn?
+              // cities.length >= 1 && !cityTileClicked && currentForecast === undefined && isLoggedIn?
+              false ?
                   <div>
                     <p>Loading...</p>
                   </div>
