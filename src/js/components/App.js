@@ -1464,7 +1464,7 @@ class App extends Component {
                       tempInCelsius={tempInCelsius}
                       deleteCityTileHandler={this.deleteCityTileHandler}
                     />
-                    <Modal BackdropProps={{transitionduration:0}} open={cityTileClicked} disablePortal={true} onLoad={this.targetScrollElement.current ? () => this.targetScrollElement.current.addEventListener('scroll', this.listenScrollEvent): null}>
+                    <Modal BackdropProps={{transitionduration:0}} open={cityTileClicked} disablePortal={true} onLoad={this.targetScrollElement.current ? this.targetScrollElement.current.addEventListener('scroll', this.listenScrollEvent): null}>
                       <div ref={this.targetScrollElement} className={currentForecast.length === cities.length && selection !== '' ?
                         `${currentForecast.filter(cast => cast[selection])[0][selection]['icon']}`:
                          'cloudy'} style={{height:'100%', backgroundAttachment:'fixed', overflowY:'scroll'}}>
