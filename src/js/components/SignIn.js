@@ -148,22 +148,24 @@ export default function SignIn(props) {
                           Continue as Guest
                         </MaterialLink>
                       </div>
-                      <Button
-                        type="submit"
-                        fullWidth
-                        variant="contained"
-                        color="primary"
-                        classes={{contained:classes.contained}}
-                        // style={{margin:'1rem 0 0 0'}}
-                      >
-                        Sign In
-                      </Button>
+                      <Tooltip disableHoverListener={true} disableTouchListener={true} disableFocusListener={true} title='Invalid Login' open={props.signInFailureTooltipOpen} onOpen={() => null} onClose={() => null}>
+                        <Button
+                          type="submit"
+                          fullWidth
+                          variant="contained"
+                          color="primary"
+                          classes={{contained:classes.contained}}
+                          // style={{margin:'1rem 0 0 0'}}
+                        >
+                          Sign In
+                        </Button>
+                      </Tooltip>
                     </form>
                   </div>
                 </Container>
                 <a id='darksky-link' target='_blank' href='https://darksky.net/poweredby/' >
                         <img style={{display:'flex', justifyContent:'center', width:'8vh', height:'4vh', }} 
-                        width={'16px'} height={'16px'} src='./assets/darkskyattribution.png' />
+                        width={'16px'} height={'16px'} src='./weatherappc/assets/darkskyattribution.png' />
                 </a>
               </div>
             </Route>

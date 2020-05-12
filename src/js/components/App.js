@@ -74,7 +74,8 @@ const initialState = {
   cityFailedSearch: false,
   paddingBottomSize:'0vh',
   selection:'',
-  signupSuccessTooltipOpen:false
+  signupSuccessTooltipOpen:false,
+  signInFailureTooltipOpen:false
 };
 
 class App extends Component {
@@ -131,7 +132,8 @@ class App extends Component {
             cityFailedSearch: false,
             paddingBottomSize:'0vh',
             selection: '',
-            signupSuccessTooltipOpen:false
+            signupSuccessTooltipOpen:false,
+            signInFailureTooltipOpen:false
         };
 
         this.targetScrollElement = React.createRef();
@@ -175,7 +177,6 @@ class App extends Component {
     componentDidMount () {
       window.addEventListener('beforeunload', this.testPoints);
       this.tick();
-      console.log(countryCodes);
       this.intervalTime = setInterval(
         () => this.tick(),
         1000
@@ -281,7 +282,6 @@ class App extends Component {
     // }
 
     async testData (country, city, zip='99999') {
-      console.log(country, city, 'Zip: ', zip);
       let countryFinal = countryCodes.filter(code => {
         return code[country];
       })[0][country];
@@ -313,10 +313,6 @@ class App extends Component {
         :
         0.1
         ;
-        console.log(data.rain?data.rain['3h']:'');
-        // const pressure = Math.round(data.main.pressure/33.864);
-        // const visibility = Math.round(data.visibility/1609);
-        console.log(data);
         if(this.state.cities.filter(item => item === `${city}*${country}*${zip}`).length>=1) {
           const cityIndex = this.state.cities.indexOf(`${city}*${country}*${zip}`);
           const cityString = this.state.cities[cityIndex];
@@ -357,7 +353,6 @@ class App extends Component {
     }
     
     async darkSkyData (city, country, latitude, longitude, zip='99999') {
-      console.log(latitude, longitude); 
       
       await fetch(`https://sheltered-citadel-75989.herokuapp.com/darkSky`, {
         method: 'get',
@@ -371,7 +366,6 @@ class App extends Component {
       .then(response => response.json())
       .then(data => {
         data = JSON.parse(data);
-        console.log(data);
         if(this.state.currentForecast.length === 0){
           this.setState({
             currentForecast: [{[`${city}*${country}*${zip}`]: data.currently}],
@@ -417,21 +411,17 @@ class App extends Component {
     }
 
     async updateLoadedState (city, country, zip='99999') {
-      console.log('loading updated state *****************')
       let cities = this.state.cities;
       for(let i = 0; i<cities.length;i++) {
         city = cities[i].split('*')[0];
         country = cities[i].split('*')[1];
         zip = this.state.zip[i];
-        console.log('Ziiiiiiiiiiiiiiiiiiiiiiiiip', zip)
         await this.testData(country, city, zip?zip:'99999');
-        console.log('loading test data *****************')
         await this.darkSkyData(city,
           country,
           this.state.coordinates.filter(coords => coords.city === `${city}*${country}*${zip}`)[0].lat,
           this.state.coordinates.filter(coords => coords.city === `${city}*${country}*${zip}`)[0].lon,
           zip);
-        console.log('loading darksky data *****************')
         // await this.airData(this.state.coordinates.filter(coords => coords.city === `${city}*${country}*${zip}`)[0].lat,
         // this.state.coordinates.filter(coords => coords.city === `${city}*${country}*${zip}`)[0].lon,
         // `${city}*${country}*${zip}`); 
@@ -712,7 +702,6 @@ class App extends Component {
   }
     async addCityHandler (city, country, zip='99999', e) {
       e.persist();
-      console.log(e);
       const cities = this.state.cities;
       const countryCode = this.state.countryCode;
       const fahrenheit = this.state.fahrenheit;
@@ -723,7 +712,6 @@ class App extends Component {
       countryCode.filter(item => item === country).length === 0) && 
       (fahrenheit?fahrenheit.filter(item => typeof(item[`${city}*${country}*${zip}`]) === 'number').length !== 0:null ||
       this.state.currentCity === `${city}*${country}*${zip}`)) {
-        console.log(this.state.currentCity);
         this.setState({
           cities: [...this.state.cities, `${city}*${country}*${zip}`],
           countryCode: [...this.state.countryCode, country],
@@ -735,10 +723,6 @@ class App extends Component {
           this.state.coordinates.filter(coords => coords.city === `${city}*${country}*${zip}`)[0].lat,
           this.state.coordinates.filter(coords => coords.city === `${city}*${country}*${zip}`)[0].lon,
           zip);
-        console.log('Current Forecast: ',this.state.currentForecast);
-        console.log('Hourly Forecast: ', this.state.hourlyForecast);
-        console.log('Daily Forecast: ', this.state.dailyForecast);
-        console.log(this.state.cities);
         // this.setState({
         //   loadingAirData: true
         // });
@@ -1008,7 +992,6 @@ class App extends Component {
       // }
       } else {
         this.setState({cityFailedSearch: true});
-        console.log('try another city');
       }
       return this.state.cityFailedSearch;
     }
@@ -1037,7 +1020,6 @@ class App extends Component {
       .then(response => response.json())
       .then(data => {
         data = JSON.parse(data);
-        console.log(data.suggestions);
         if(data.suggestions !== undefined){
             this.setState({matchedCities: data.suggestions});
         }
@@ -1055,8 +1037,6 @@ class App extends Component {
       const selectedDailyForecast = this.state.dailyForecast.filter(forecast => forecast[`${citySelection}*${countrySelection}*${zipSelection}`])[0];
       const selectedTimezone = this.state.timezone[this.state.cities.indexOf(`${citySelection}*${countrySelection}*${zipSelection}`)][`${citySelection}*${countrySelection}*${zipSelection}`]*3600*1000;
 
-      // console.log(selectedHourlyForecast[selection]);
-      // console.log(selectedDailyForecast[selection]);
       this.setState({
         cityTileClicked: true,
         selectedCity: citySelection,
@@ -1225,44 +1205,43 @@ class App extends Component {
       let iconPath = undefined;
       switch (icon) {
         case 'clear-day':
-          iconPath = './assets/day.svg';
+          iconPath = './weatherappc/assets/day.svg';
           break;
         case 'clear-night':
-          iconPath = './assets/night.svg';
+          iconPath = './weatherappc/assets/night.svg';
           break;
         case 'rain':
-          iconPath = './assets/rainy-3.svg';
+          iconPath = './weatherappc/assets/rainy-3.svg';
           break;
         case 'snow':
         case 'sleet':
-          iconPath = './assets/snowy-1.svg';
+          iconPath = './weatherappc/assets/snowy-1.svg';
           break;
         case 'wind':
-          iconPath = './assets/wind.svg';
+          iconPath = './weatherappc/assets/wind.svg';
           break;
         case 'fog':
-          iconPath = './assets/haze.svg';
+          iconPath = './weatherappc/assets/haze.svg';
           break;
         case 'cloudy':
         case 'partly-cloudy-day':
-          iconPath = './assets/cloudy-day-1.svg';
+          iconPath = './weatherappc/assets/cloudy-day-1.svg';
           break;
         case 'partly-cloudy-night':
-          iconPath = './assets/cloudy-night-1.svg';
+          iconPath = './weatherappc/assets/cloudy-night-1.svg';
           break;
         case 'tor nado':
         case 'thunderstorm':
         case 'hail':
-          iconPath = './assets/thunder.svg';
+          iconPath = './weatherappc/assets/thunder.svg';
           break;
         default:
-          iconPath = './assets/cloudy.svg';
+          iconPath = './weatherappc/assets/cloudy.svg';
       }
       return iconPath;
     }
 
     async signInHandler (username, password) {
-      // console.log(username, password)
       await fetch('https://sheltered-citadel-75989.herokuapp.com/login', {
         method:'get',
         headers: {
@@ -1275,13 +1254,11 @@ class App extends Component {
       .then(response => response.json())
       .then(data => {
         if(data.isLoggedIn && data.state === undefined) {
-          console.log(data);
           this.setState({
             isLoggedIn: true,
             id:data.id
           })
         } else if(data.isLoggedIn && data.state !== undefined) {
-            console.log(data.state);
             this.setState({
               ...data.state,
               isLoggedIn: true,
@@ -1290,7 +1267,10 @@ class App extends Component {
             this.updateLoadedState();
           } 
         else {
-          console.log('Invalid login')
+          this.setState({signInFailureTooltipOpen:true});
+          setTimeout(() => {
+            this.setState({signInFailureTooltipOpen:false});
+          }, 3000)
         }
       })
     }
@@ -1308,7 +1288,6 @@ class App extends Component {
     })
     .then(response => response.json())
     .then(data => {
-      console.log(data);
       if(data.response) {
         this.setState({signupSuccessTooltipOpen:true});
         setTimeout(() => {
@@ -1346,7 +1325,6 @@ class App extends Component {
           body: JSON.stringify({state:{...this.state, cityInputDrawerOpen:false, matchedCities:[], opacityPercentage:1, paddingBottomTitle:false, paddingBottomSize:'0vh', cityInput:'' }})
         })
         .then(response => response.json())
-        .then(data => console.log(data.response))
       }
       if(!this.state.isGuestUser && this.state.isLoggedIn && this.state.cities.length === 0){
         await fetch(`https://sheltered-citadel-75989.herokuapp.com/users/${this.state.id}`, {
@@ -1358,14 +1336,12 @@ class App extends Component {
           body: JSON.stringify({state:{...initialState}})
         })
         .then(response => response.json())
-        .then(data => console.log(data.response))
       }
     }
 
     dragTileHandler = (e) => {
       e.persist();
       e.preventDefault();
-      console.log('dragging');
     }
 
     sameCityTooltipCloseHandler = () => {
@@ -1451,7 +1427,8 @@ class App extends Component {
           selectedZip,
           cityFailedSearch,
           cityInput,
-          signupSuccessTooltipOpen
+          signupSuccessTooltipOpen,
+          signInFailureTooltipOpen
          } = this.state;
 
         return (
@@ -1466,6 +1443,7 @@ class App extends Component {
                   signUpHandler={this.signUpHandler}
                   signupSuccessTooltipOpen={signupSuccessTooltipOpen}
                   isLoggedIn={isLoggedIn}
+                  signInFailureTooltipOpen={signInFailureTooltipOpen}
                   />
                 </Fragment>
               :
@@ -1486,7 +1464,7 @@ class App extends Component {
                       tempInCelsius={tempInCelsius}
                       deleteCityTileHandler={this.deleteCityTileHandler}
                     />
-                    <Modal BackdropProps={{transitionduration:0}} open={cityTileClicked} disablePortal={true} onLoad={this.targetScrollElement.current ? this.targetScrollElement.current.addEventListener('scroll', this.listenScrollEvent): null}>
+                    <Modal BackdropProps={{transitionduration:0}} open={cityTileClicked} disablePortal={true} onLoad={this.targetScrollElement.current ? () => this.targetScrollElement.current.addEventListener('scroll', this.listenScrollEvent): null}>
                       <div ref={this.targetScrollElement} className={currentForecast.length === cities.length && selection !== '' ?
                         `${currentForecast.filter(cast => cast[selection])[0][selection]['icon']}`:
                          'cloudy'} style={{height:'100%', backgroundAttachment:'fixed', overflowY:'scroll'}}>

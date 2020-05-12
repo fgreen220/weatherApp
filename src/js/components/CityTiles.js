@@ -56,8 +56,15 @@ const CityTiles = (props) => {
             }
           }
           }
-          onTouchStart ={() => {
+          onTouchStart ={e => {
             setDeleteButtonIndex(() => index);
+            e.persist();
+            if(cityTileWidthAdjustment === 0 && expandedTileClickNumber === 1){
+              props.cityTileHandler(e);
+            }
+            if(cityTileWidthAdjustment === 0 && expandedTileClickNumber === 2){
+              setExpandedTileClickNumber(() => 1);
+            }
             if(cityTileWidthAdjustment >= 1) {
               setCityTileWidthAdjustment(prevWidth => prevWidth >=1 ? 0 : prevWidth);
             }
